@@ -6,8 +6,9 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"project/pkg/file_modifier"
 	"strings"
+
+	"github.com/firstBitSportivnaya/files-converter/pkg/file_modifier"
 
 	v8 "github.com/v8platform/api"
 )
@@ -28,7 +29,7 @@ func removeDir(dir string) {
 	}
 }
 
-func ConvertToCfe(dir string) {
+func ConvertToCfe(dir string) error {
 	reader := bufio.NewReader(os.Stdin)
 
 	// Создание временной базы данных
@@ -43,14 +44,14 @@ func ConvertToCfe(dir string) {
 
 	// Обработка ошибки создания базы
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("ошибка при создании базы: %w", err)
 	}
 
 	// Загрузка конфигурации из файлов
 	comLoadSrc := v8.LoadConfigFromFiles(dir)
 	err = v8.Run(tmpInfoBase, comLoadSrc, version)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("ошибка при загрузка конфигурации из файлов: %w", err)
 	}
 
 	// временный каталог для исходных файлов
@@ -63,7 +64,7 @@ func ConvertToCfe(dir string) {
 	comDumpConfigToFiles := v8.DumpConfigToFiles(tmpDir)
 	err = v8.Run(tmpInfoBase, comDumpConfigToFiles, version)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("ошибка получения исходных файлов: %w", err)
 	}
 
 	// Обработка файлов
@@ -75,29 +76,30 @@ func ConvertToCfe(dir string) {
 	err = v8.Run(tmpInfoBase, load, version)
 
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("ошибка загрузки конфигурации расширения: %w", err)
 	}
 
 	// Ввод пути для сохранения файла cfe
 	fmt.Print("Введите путь для сохранения файла *cfe: ")
 	savePath, err := reader.ReadString('\n')
 	if err != nil {
-		fmt.Printf("Ошибка при чтении ввода: %v\n", err)
-		return
+		return fmt.Errorf("ошибка при чтении ввода: %w", err)
 	}
 	savePath = strings.TrimSpace(savePath)
 	savePath = filepath.Clean(savePath)
 
 	// Формирование пути для сохранения файла cfe
-	dirOut := filepath.Join(savePath, "PSSL.cfe")
+	dirOut := filepath.Join(savePath, "PSSL_1_0_0_2.cfe")
 
 	// Выгрузка в cfe
 	dump := v8.DumpExtensionCfg(dirOut, "ПроектнаяБиблиотекаПодсистем")
 
 	err = v8.Run(tmpInfoBase, dump, version)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("ошибка при выгрузке в файл .cfe: %w", err)
 	}
 
 	fmt.Printf("файл *cfe успешно сохранен в дирректорию: %s\n", dir)
+
+	return nil
 }

@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"project/pkg/converter"
 	"strings"
+
+	"github.com/firstBitSportivnaya/files-converter/pkg/converter"
 )
 
 func main() {
@@ -24,5 +25,8 @@ func main() {
 
 	fmt.Printf("Выбрана директория: %s\n", path)
 
-	converter.ConvertToCfe(path)
+	err = converter.ConvertToCfe(path)
+	if err != nil {
+		fmt.Printf("Ошибка при конвертации файлов: %v\n", err)
+	}
 }
