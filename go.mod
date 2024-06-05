@@ -1,4 +1,4 @@
-module project
+module github.com/firstBitSportivnaya/files-converter
 
 go 1.22.3
 
