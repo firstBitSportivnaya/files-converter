@@ -89,7 +89,7 @@ func ConvertToCfe(dir string) error {
 	savePath = filepath.Clean(savePath)
 
 	// Формирование пути для сохранения файла cfe
-	dirOut := filepath.Join(savePath, "PSSL.cfe")
+	dirOut := filepath.Join(savePath, "PSSL_1_0_0_2.cfe")
 
 	// Выгрузка в cfe
 	dump := v8.DumpExtensionCfg(dirOut, "ПроектнаяБиблиотекаПодсистем")

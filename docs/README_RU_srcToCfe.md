@@ -1,6 +1,3 @@
-
-#### README_RU_srcToCfe.md
-```markdown
 # src-files-converter.exe
 
 ## Обзор
