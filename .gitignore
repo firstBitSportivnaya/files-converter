@@ -1,2 +1,6 @@
+# Игнорировать исполняемые файлы
+*.exe
+
+# Игнорировать специфические файлы
 cmd/cf_convert/main.go
 pkg/converter/cfToCfe.go
