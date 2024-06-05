@@ -11,6 +11,8 @@ import (
 )
 
 func main() {
+	defer pressAnyKeyToExit()
+
 	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Print("Введите путь к исходным файлам: ")
@@ -29,4 +31,9 @@ func main() {
 	if err != nil {
 		fmt.Printf("Ошибка при конвертации файлов: %v\n", err)
 	}
+}
+
+func pressAnyKeyToExit() {
+	fmt.Println("Press any key to exit...")
+	bufio.NewReader(os.Stdin).ReadBytes('\n')
 }
