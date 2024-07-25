@@ -17,5 +17,5 @@ require (
 	github.com/v8platform/find v0.0.0-20200629131701-72a40bdf1034 // indirect
 	github.com/v8platform/marshaler v0.1.1 // indirect
 	github.com/v8platform/runner v0.3.1 // indirect
-	golang.org/x/text v0.3.3 // indirect
+	golang.org/x/text v0.3.8 // indirect
 )
