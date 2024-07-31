@@ -2,26 +2,27 @@ package file_modifier
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/beevik/etree"
 )
 
-var filesToProcess = []string{
-	// main file
-	"Configuration.xml",
-	// Common modules
-	"пбп_ОбщегоНазначенияПолныеПрава.xml",
-	// Languages
-	"Русский.xml",
-	"English.xml",
-	// Roles
-	"АдминистраторСистемы.xml",
-	"ИнтерактивноеОткрытиеВнешнихОтчетовИОбработок.xml",
-	"ПолныеПрава.xml",
-}
+var (
+	filesToProcess = []string{
+		// main file
+		"Configuration.xml",
+		// Languages
+		"Русский.xml",
+		"English.xml",
+		// Roles
+		"АдминистраторСистемы.xml",
+		"ИнтерактивноеОткрытиеВнешнихОтчетовИОбработок.xml",
+		"ПолныеПрава.xml",
+	}
+	dirCommonModules = "CommonModules"
+)
 
 func ChangeFiles(dir string) {
 
@@ -32,13 +33,19 @@ func ChangeFiles(dir string) {
 
 	processFile := func(path string, d os.DirEntry, err error) error {
 		if err != nil {
-			return err
+			return fmt.Errorf("ошибка при обработке файла %s: %w", path, err)
 		}
-		if !d.IsDir() && filepath.Ext(d.Name()) == ".xml" {
-			fileName := filepath.Base(path)
-			if _, found := files[fileName]; found {
-				fmt.Printf("Найден файл: %s\n", fileName)
-				changeFile(path)
+		dirEntryName := d.Name()
+
+		if d.IsDir() {
+			if dirEntryName == dirCommonModules {
+				return processCommonModules(path)
+			}
+		} else {
+			if isXMLFile(dirEntryName) {
+				if _, found := files[dirEntryName]; found {
+					return processFile(path, dirEntryName)
+				}
 			}
 		}
 		return nil
@@ -51,45 +58,91 @@ func ChangeFiles(dir string) {
 	}
 }
 
-func changeFile(path string) {
+func processCommonModules(path string) error {
+	entries, err := os.ReadDir(path)
+	if err != nil {
+		return fmt.Errorf("ошибка при чтении директории %s: %w", path, err)
+	}
+	for _, entry := range entries {
+		entryName := entry.Name()
+		if !entry.IsDir() && isXMLFile(entryName) {
+			filePath := filepath.Join(path, entryName)
+			if err := DisablePrivilegedMode(filePath, entryName); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func isXMLFile(fileName string) bool {
+	return filepath.Ext(fileName) == ".xml"
+}
+
+func DisablePrivilegedMode(path, fileName string) error {
 	doc := etree.NewDocument()
 	if err := doc.ReadFromFile(path); err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("ошибка при чтении файла %s: %w", fileName, err)
 	}
 
 	properties := findProperties(doc)
 	if properties == nil {
-		fmt.Printf("Элемент <Properties> не найден в файле %s", path)
-		return
+		return fmt.Errorf("элемент <Properties> не найден в файле %s", fileName)
+	}
+
+	key := "Privileged"
+	flag := properties.FindElement(key).Text()
+	value, err := strconv.ParseBool(flag)
+	if err != nil {
+		return fmt.Errorf("ошибка при парсинге значения флага %s: %w", flag, err)
+	}
+	if value {
+		if err := changeAttribute(properties, key, "false"); err != nil {
+			return err
+		}
+		if err := doc.WriteToFile(path); err != nil {
+			return fmt.Errorf("ошибка при записи файла %s: %w", path, err)
+		}
+
+		fmt.Println("Файл успешно обработан:", fileName)
+	}
+
+	return nil
+}
+
+func processFile(path, fileName string) error {
+	doc := etree.NewDocument()
+	if err := doc.ReadFromFile(path); err != nil {
+		return fmt.Errorf("ошибка при чтении файла %s: %w", fileName, err)
+	}
+
+	properties := findProperties(doc)
+	if properties == nil {
+		return fmt.Errorf("элемент <Properties> не найден в файле %s", fileName)
 	}
 
 	// Обработка в зависимости от типа файла
 	switch filepath.Base(path) {
 	case "Configuration.xml":
-		err := processConfigurationFile(properties)
-		if err != nil {
-			log.Fatal(err)
-		}
-	case "пбп_ОбщегоНазначенияПолныеПрава.xml":
-		err := processFileToModify(properties)
-		if err != nil {
-			log.Fatal(err)
+		if err := processConfigurationFile(properties); err != nil {
+			return fmt.Errorf("ошибка при обработке Configuration.xml: %w", err)
 		}
 	default:
 		err := addAttributes(properties, map[string]string{
 			"ObjectBelonging": "Adopted",
 		})
 		if err != nil {
-			log.Fatal(err)
+			return fmt.Errorf("ошибка при добавлении атрибутов в файл %s: %w", fileName, err)
 		}
 	}
 
 	// Записываем изменения обратно в файл
 	if err := doc.WriteToFile(path); err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("ошибка при записи файла %s: %w", path, err)
 	}
 
-	fmt.Println("Файл успешно обработан:", path)
+	fmt.Println("Файл успешно обработан:", fileName)
+	return nil
 }
 
 // findProperties - Находит элемент <Properties>
@@ -144,11 +197,6 @@ func processConfigurationFile(properties *etree.Element) error {
 	return nil
 }
 
-// processFileToModify - Обрабатывает файл, где необходимо изменить атрибуты
-func processFileToModify(properties *etree.Element) error {
-	return changeAttribute(properties, "Privileged", "false")
-}
-
 // addAttributes - Добавляет атрибуты к элементу
 func addAttributes(properties *etree.Element, attributes map[string]string) error {
 	for key, value := range attributes {
@@ -165,7 +213,7 @@ func addAttributes(properties *etree.Element, attributes map[string]string) erro
 func changeAttribute(properties *etree.Element, key, value string) error {
 	elem := properties.FindElement(key)
 	if elem == nil {
-		fmt.Printf("Атрибут %s не найден", key)
+		return fmt.Errorf("атрибут %s не найден", key)
 	}
 	elem.SetText(value)
 	return nil

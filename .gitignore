@@ -5,3 +5,5 @@
 # Игнорировать специфические файлы
 cmd/cf_convert/main.go
 pkg/converter/cfToCfe.go
+
+.vscode
