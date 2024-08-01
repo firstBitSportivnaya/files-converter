@@ -1,7 +1,6 @@
 package converter
 
 import (
-	"bufio"
 	"fmt"
 	"log"
 	"os"
@@ -23,15 +22,12 @@ func NewTempDir(dir, pattern string) string {
 }
 
 func removeDir(dir string) {
-	err := os.RemoveAll(dir)
-	if err != nil {
+	if err := os.RemoveAll(dir); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func ConvertToCfe(dir string) error {
-	reader := bufio.NewReader(os.Stdin)
-
+func ConvertToCfe(sourceDir, targetDir string) error {
 	// Создание временной базы данных
 	version := v8.WithVersion("8.3.23")
 	tmpInfoBase, err := v8.CreateTempInfobase()
@@ -48,7 +44,7 @@ func ConvertToCfe(dir string) error {
 	}
 
 	// Загрузка конфигурации из файлов
-	comLoadSrc := v8.LoadConfigFromFiles(dir)
+	comLoadSrc := v8.LoadConfigFromFiles(sourceDir)
 	err = v8.Run(tmpInfoBase, comLoadSrc, version)
 	if err != nil {
 		return fmt.Errorf("ошибка при загрузка конфигурации из файлов: %w", err)
@@ -79,27 +75,18 @@ func ConvertToCfe(dir string) error {
 		return fmt.Errorf("ошибка загрузки конфигурации расширения: %w", err)
 	}
 
-	// Ввод пути для сохранения файла cfe
-	fmt.Print("Введите путь для сохранения файла *cfe: ")
-	savePath, err := reader.ReadString('\n')
-	if err != nil {
-		return fmt.Errorf("ошибка при чтении ввода: %w", err)
-	}
-	savePath = strings.TrimSpace(savePath)
-	savePath = filepath.Clean(savePath)
-
 	// Формирование пути для сохранения файла cfe
-	dirOut := filepath.Join(savePath, "PSSL_1_0_0_2.cfe")
+	outPath := filepath.Join(targetDir, "PSSL_1_0_0_2.cfe")
 
 	// Выгрузка в cfe
-	dump := v8.DumpExtensionCfg(dirOut, "ПроектнаяБиблиотекаПодсистем")
+	dump := v8.DumpExtensionCfg(outPath, "ПроектнаяБиблиотекаПодсистем")
 
 	err = v8.Run(tmpInfoBase, dump, version)
 	if err != nil {
 		return fmt.Errorf("ошибка при выгрузке в файл .cfe: %w", err)
 	}
 
-	fmt.Printf("файл *cfe успешно сохранен в дирректорию: %s\n", dir)
+	fmt.Printf("файл *.cfe успешно сохранен в дирректорию: %s\n", sourceDir)
 
 	return nil
 }
