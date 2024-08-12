@@ -1,29 +1,20 @@
 package cmd
 
 import (
-	"bufio"
-	"fmt"
 	"log"
-	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/firstBitSportivnaya/files-converter/pkg/converter"
 	"github.com/spf13/cobra"
 )
 
-var (
-	// srcConvertCmd represents the srcConvert command
-	srcConvertCmd = &cobra.Command{
-		Use:   "srcConvert",
-		Short: "Tool for converting source files to *.cfe.",
-		Run: func(cmd *cobra.Command, args []string) {
-			runConverter()
-		},
-	}
-	inputPath  string
-	outputPath string
-)
+// srcConvertCmd represents the srcConvert command
+var srcConvertCmd = &cobra.Command{
+	Use:   "srcConvert",
+	Short: "Tool for converting source files to *.cfe.",
+	Run: func(cmd *cobra.Command, args []string) {
+		runConverterSrc()
+	},
+}
 
 func init() {
 	rootCmd.AddCommand(srcConvertCmd)
@@ -34,18 +25,12 @@ func init() {
 	srcConvertCmd.MarkFlagRequired("output")
 }
 
-func runConverter() {
+func runConverterSrc() {
 	defer pressAnyKeyToExit()
 
-	sourceDir := filepath.Clean(strings.TrimSpace(inputPath))
-	targetDir := filepath.Clean(strings.TrimSpace(outputPath))
+	sourceDir, targetDir := NormalizePaths(inputPath, outputPath)
 
-	if err := converter.ConvertToCfe(sourceDir, targetDir); err != nil {
+	if err := converter.ConvertFromSourceFiles(sourceDir, targetDir); err != nil {
 		log.Printf("Could not to convert files: %v", err)
 	}
-}
-
-func pressAnyKeyToExit() {
-	fmt.Println("Press any key to exit...")
-	bufio.NewReader(os.Stdin).ReadBytes('\n')
 }

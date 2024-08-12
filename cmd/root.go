@@ -1,9 +1,18 @@
 package cmd
 
 import (
+	"bufio"
+	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/spf13/cobra"
+)
+
+var (
+	inputPath  string
+	outputPath string
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -17,9 +26,6 @@ There are two conversion modes available:
 2. Convert from .cf file to *.cfe.
 
 This tool simplifies the conversion process, making it easy and efficient to manage your files.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -31,13 +37,16 @@ func Execute() {
 }
 
 func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
+	rootCmd.CompletionOptions.DisableDefaultCmd = true
+}
 
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.files-converter.yaml)")
+func NormalizePaths(input, output string) (string, string) {
+	sourcePath := filepath.Clean(strings.TrimSpace(input))
+	targetPath := filepath.Clean(strings.TrimSpace(output))
+	return sourcePath, targetPath
+}
 
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+func pressAnyKeyToExit() {
+	fmt.Println("Press any key to exit...")
+	bufio.NewReader(os.Stdin).ReadBytes('\n')
 }
