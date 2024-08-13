@@ -11,7 +11,7 @@
 
 ## Functionality
 
-- Conversion of the *.cf form to *.cfe is not implemented.
+- Conversion of the *.cf form to *.cfe is implemented.
 - Conversion of source files to *.cfe is implemented.
 
 ## Usage
@@ -33,6 +33,12 @@ Convert a source files to *.cfe file:
 files-converter srcConvert --input="C:\path\to\source" --output="C:\path\to\output"
 # or short form
 files-converter srcConvert -i="C:\path\to\source" -o="C:\path\to\output"
+```
+Convert *.cf file to *.cfe file:
+``` shell
+files-converter cfConvert --input="C:\path\to\source\PSSL.cf" --output="C:\path\to\output"
+# or short form
+files-converter cfConvert -i="C:\path\to\source\PSSL.cf" -o="C:\path\to\output"
 ```
 
 ## License
