@@ -3,8 +3,10 @@ package cmd
 import (
 	"log"
 
+	"github.com/firstBitSportivnaya/files-converter/pkg/config"
 	"github.com/firstBitSportivnaya/files-converter/pkg/converter"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // srcConvertCmd represents the srcConvert command
@@ -30,7 +32,17 @@ func runConverterSrc() {
 
 	sourceDir, targetDir := NormalizePaths(inputPath, outputPath)
 
-	if err := converter.ConvertFromSourceFiles(sourceDir, targetDir); err != nil {
+	// временно
+	viper.SetConfigFile("configs/config.json")
+	cfg, err := config.LoadConfig(viper.GetViper())
+	if err != nil {
+		log.Println("Ошибка загрузки конфигурации:", err)
+		return
+	}
+	cfg.InputPath = sourceDir
+	cfg.OutputPath = targetDir
+	// временно
+	if err := converter.ConvertFromSourceFiles(cfg, sourceDir, targetDir); err != nil {
 		log.Printf("Could not to convert files: %v", err)
 	}
 }

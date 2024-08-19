@@ -3,14 +3,20 @@ package cmd
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/firstBitSportivnaya/files-converter/pkg/config"
+	"github.com/firstBitSportivnaya/files-converter/pkg/converter"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var (
+	// Used for flags.
+	cfgFile    string
 	inputPath  string
 	outputPath string
 )
@@ -26,6 +32,7 @@ There are two conversion modes available:
 2. Convert from .cf file to *.cfe.
 
 This tool simplifies the conversion process, making it easy and efficient to manage your files.`,
+	Run: runMain,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -37,9 +44,57 @@ func Execute() {
 }
 
 func init() {
+	cobra.OnInitialize(initConfig)
+
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.files-converter/configs/config.json)")
+
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
 }
 
+func initConfig() {
+	if cfgFile != "" {
+		viper.SetConfigFile(cfgFile)
+	} else {
+		viper.SetConfigName("config")
+		viper.SetConfigType("json")
+		viper.AddConfigPath("./configs")
+
+		viper.AddConfigPath("$HOME/.files-converter/configs")
+		viper.AddConfigPath("/etc/files-converter")
+	}
+	viper.AutomaticEnv()
+}
+
+func runMain(cmd *cobra.Command, args []string) {
+	cfg, err := config.LoadConfig(viper.GetViper())
+	if err != nil {
+		log.Println("Ошибка загрузки конфигурации:", err)
+		return
+	}
+	fmt.Println("Используется файл конфигурации:", viper.ConfigFileUsed())
+
+	runConvert(cfg)
+}
+
+func runConvert(cfg *config.Configuration) {
+	defer pressAnyKeyToExit()
+
+	var err error
+	switch cfg.ConversionType {
+	case "srcConvert":
+		err = converter.ConvertFromSourceFiles(cfg, "", "")
+	case "cfConvert":
+		err = converter.ConvertFromCf(cfg, "", "")
+	default:
+		log.Printf("Неизвестный тип конвертации: %s", cfg.ConversionType)
+	}
+
+	if err != nil {
+		log.Printf("Не удалось конвертировать файлы: %v", err)
+	}
+}
+
+// Устарела, будет убрана, используется для совместимости
 func NormalizePaths(input, output string) (string, string) {
 	sourcePath := filepath.Clean(strings.TrimSpace(input))
 	targetPath := filepath.Clean(strings.TrimSpace(output))
