@@ -6,13 +6,64 @@
 
 ## Features
 **Configuration File Conversion:** Convert configuration files or *.cf files between different formats.  
-**Cobra Parameter Handling:** Simplified command-line interface for managing parameters.  
 **Customizable Options:** Specify output formats, file destinations, and more.  
 
 ## Functionality
-
 - Conversion of the *.cf form to *.cfe is implemented.
 - Conversion of source files to *.cfe is implemented.
+
+## Configuration File
+The **files-converter** tool can be configured using a JSON configuration file, allowing you to predefine settings such as input paths, output paths, and conversion types.
+
+### Configuration Parameters
+
+- **`version`**: *(string)* Specifies the required platform version.
+  - **Example**: `"version": "8.3.23"`
+
+- **`input_path`**: *(string)* Path to the directory or file to be converted.
+  - **Example**: `"input_path": "C:/path/to/input"`
+
+- **`output_path`**: *(string)* Path where the converted files will be saved.
+  - **Example**: `"output_path": "C:/path/to/output"`
+
+- **`conversion_type`**: *(string)* Specifies the type of conversion to perform. Valid values are `"srcConvert"` and `"cfConvert"`.
+  - **Example**: `"conversion_type": "srcConvert"`
+
+- **`xml_files`**: *(array)* A list of XML files and their associated operations.
+  - **`file_name`**: *(string)* The name of the XML file to operate on.
+    - **Example**: `"file_name": "example.xml"`
+  - **`element_operations`**: *(array)* A list of operations to perform on elements within the XML file.
+    - **`element_name`**: *(string)* The name of the XML element to modify.
+      - **Example**: `"element_name": "SampleElement"`
+    - **`operation`**: *(string)* The type of operation (`"add"`, `"delete"`, `"modify"`).
+      - **Example**: `"operation": "modify"`
+    - **`value`**: *(string, optional)* The new value to set for the element (used with `add` and `modify` operations).
+      - **Example**: `"value": "NewValue"`
+
+### Example Configuration File
+
+Here's an example of a configuration file (`config.json`):
+
+```json
+{
+  "version": "8.3.23",
+  "input_path": "C:/Users/denis/Documents/1C/cftocfe/convert",
+  "output_path": "C:/Users/denis/Documents/1C/cftocfe/convert",
+  "conversion_type": "srcConvert",
+  "xml_files": [
+    {
+      "file_name": "example.xml",
+      "element_operations": [
+        {
+          "element_name": "SampleElement",
+          "operation": "modify",
+          "value": "NewValue"
+        }
+      ]
+    }
+  ]
+}
+```
 
 ## Usage
 It can be installed by running:
@@ -28,6 +79,10 @@ files-converter --help
 ```
 
 ## Examples
+Using the configuration file:
+``` shell
+files-converter --config="configs/config.json"
+```
 Convert a source files to *.cfe file:
 ``` shell
 files-converter srcConvert --input="C:\path\to\source" --output="C:\path\to\output"
