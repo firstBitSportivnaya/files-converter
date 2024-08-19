@@ -2,6 +2,7 @@ package file_modifier
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -40,7 +41,7 @@ func ChangeFiles(cfg *config.Configuration, dir string) {
 
 	err := filepath.WalkDir(dir, processFile)
 	if err != nil {
-		fmt.Printf("Ошибка при обходе директорий: %v\n", err)
+		log.Printf("Ошибка при обходе директорий: %v\n", err)
 	}
 }
 
@@ -131,7 +132,7 @@ func processElement(properties *etree.Element, element config.ElementOperation) 
 	case config.Delete:
 		deleteElement(properties, element.ElementName)
 	default:
-		fmt.Printf("Неизвестная операция: %v для элемента: %s", element.Operation, element.ElementName)
+		log.Printf("Неизвестная операция: %v для элемента: %s", element.Operation, element.ElementName)
 	}
 }
 
@@ -145,7 +146,7 @@ func modifyElement(properties *etree.Element, path, value string) {
 	if currentElem != nil {
 		currentElem.SetText(value)
 	} else {
-		fmt.Printf("Элемент %s не найден", path)
+		log.Printf("Элемент %s не найден", path)
 	}
 }
 
