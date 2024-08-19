@@ -1,7 +1,7 @@
 {
     "version": "8.3.23",
-    "input_path": "C:/path/to/source",
-    "output_path": "C:/path/to/output",
+    "input_path": "C:/Users/denis/Documents/1C/cftocfe/convert",
+    "output_path": "C:/Users/denis/Documents/1C/cftocfe/convert",
     "conversion_type": "srcConvert",
     "xml_files": [
             {

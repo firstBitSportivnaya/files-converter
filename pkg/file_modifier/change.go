@@ -102,9 +102,7 @@ func disablePrivilegedMode(path, fileName string) error {
 		return fmt.Errorf("ошибка при парсинге значения флага %s: %w", flag, err)
 	}
 	if value {
-		if err := changeElement(properties, key, "false"); err != nil {
-			return err
-		}
+		modifyElement(properties, key, "false")
 		if err := doc.WriteToFile(path); err != nil {
 			return fmt.Errorf("ошибка при записи файла %s: %w", path, err)
 		}
@@ -121,35 +119,41 @@ func findProperties(doc *etree.Document) *etree.Element {
 }
 
 func processElement(properties *etree.Element, element config.ElementOperation) {
-	currentElem := properties.FindElement(element.ElementName)
 	switch element.Operation {
 	case config.Add:
-		if currentElem == nil {
-			currentElem = properties.CreateElement(element.ElementName)
-		}
-		currentElem.SetText(element.Value)
-	case config.Modify:
-		if currentElem != nil {
-			currentElem.SetText(element.Value)
+		if currentElem := properties.FindElement(element.ElementName); currentElem == nil {
+			addElement(properties, element.ElementName, element.Value)
 		} else {
-			fmt.Printf("атрибут %s не найден", element.ElementName)
+			modifyElement(properties, element.ElementName, element.Value)
 		}
+	case config.Modify:
+		modifyElement(properties, element.ElementName, element.Value)
 	case config.Delete:
-		if currentElem != nil {
-			properties.RemoveChild(currentElem)
-		}
+		deleteElement(properties, element.ElementName)
 	default:
-		fmt.Printf("Unknown operation: %v for element: %s", element.Operation, element.ElementName)
+		fmt.Printf("Неизвестная операция: %v для элемента: %s", element.Operation, element.ElementName)
 	}
 }
 
-func changeElement(properties *etree.Element, key, value string) error {
-	elem := properties.FindElement(key)
-	if elem == nil {
-		return fmt.Errorf("атрибут %s не найден", key)
+func addElement(properties *etree.Element, tag, value string) {
+	currentElem := properties.CreateElement(tag)
+	currentElem.SetText(value)
+}
+
+func modifyElement(properties *etree.Element, path, value string) {
+	currentElem := properties.FindElement(path)
+	if currentElem != nil {
+		currentElem.SetText(value)
+	} else {
+		fmt.Printf("Элемент %s не найден", path)
 	}
-	elem.SetText(value)
-	return nil
+}
+
+func deleteElement(properties *etree.Element, path string) {
+	currentElem := properties.FindElement(path)
+	if currentElem != nil {
+		properties.RemoveChild(currentElem)
+	}
 }
 
 func isXMLFile(fileName string) bool {
