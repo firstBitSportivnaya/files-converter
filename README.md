@@ -47,8 +47,8 @@ Here's an example of a configuration file (`config.json`):
 ```json
 {
   "version": "8.3.23",
-  "input_path": "C:/Users/denis/Documents/1C/cftocfe/convert",
-  "output_path": "C:/Users/denis/Documents/1C/cftocfe/convert",
+  "input_path": "C:/path/to/source",
+  "output_path": "C:/path/to/output",
   "conversion_type": "srcConvert",
   "xml_files": [
     {
