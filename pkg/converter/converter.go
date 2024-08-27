@@ -35,7 +35,9 @@ func (ib *TempInfoBase) Remove() {
 }
 
 func ConvertFromSourceFiles(cfg *config.Configuration, sourceDir, targetDir string) error {
-	version := v8.WithVersion(cfg.Version)
+	dumpInfo := config.GetDumpInfo()
+
+	version := v8.WithVersion(cfg.PlatformVersion)
 	tmpIB, err := createTempIB()
 	if err != nil {
 		return fmt.Errorf("ошибка при создании базы: %w", err)
@@ -62,10 +64,12 @@ func ConvertFromSourceFiles(cfg *config.Configuration, sourceDir, targetDir stri
 		return fmt.Errorf("ошибка получения исходных файлов: %w", err)
 	}
 
-	file_modifier.ChangeFiles(cfg, tmpDir)
+	if err = file_modifier.ChangeFiles(cfg, tmpDir); err != nil {
+		return err
+	}
 
 	// Загрузка конфигурации расширения из исходников
-	load := v8.LoadExtensionConfigFromFiles(tmpDir, "ПроектнаяБиблиотекаПодсистем")
+	load := v8.LoadExtensionConfigFromFiles(tmpDir, cfg.Extension)
 
 	err = v8.Run(tmpInfoBase, load, version)
 
@@ -73,11 +77,18 @@ func ConvertFromSourceFiles(cfg *config.Configuration, sourceDir, targetDir stri
 		return fmt.Errorf("ошибка загрузки конфигурации расширения: %w", err)
 	}
 
-	// Формирование пути для сохранения файла cfe
-	outPath := filepath.Join(cfg.OutputPath, "PSSL_1_0_0_2.cfe")
+	outputFile := cfg.Extension
+	if outputFile == "" {
+		outputFile = dumpInfo.ConfigName
+		if dumpInfo.Version != "" {
+			outputFile += "_" + strings.ReplaceAll(dumpInfo.Version, ".", "_")
+		}
+	}
+	outputFile += ".cfe"
+	outPath := filepath.Join(cfg.OutputPath, outputFile)
 
 	// Выгрузка в cfe
-	dump := v8.DumpExtensionCfg(outPath, "ПроектнаяБиблиотекаПодсистем")
+	dump := v8.DumpExtensionCfg(outPath, cfg.Extension)
 
 	err = v8.Run(tmpInfoBase, dump, version)
 	if err != nil {
@@ -90,7 +101,9 @@ func ConvertFromSourceFiles(cfg *config.Configuration, sourceDir, targetDir stri
 }
 
 func ConvertFromCf(cfg *config.Configuration, sourcePath, targetDir string) error {
-	version := v8.WithVersion(cfg.Version)
+	dumpInfo := config.GetDumpInfo()
+
+	version := v8.WithVersion(cfg.PlatformVersion)
 	tmpIB, err := createTempIB()
 	if err != nil {
 		return fmt.Errorf("ошибка при создании базы: %w", err)
@@ -114,9 +127,11 @@ func ConvertFromCf(cfg *config.Configuration, sourcePath, targetDir string) erro
 		return fmt.Errorf("ошибка получения исходных файлов: %w", err)
 	}
 
-	file_modifier.ChangeFiles(cfg, tmpDir)
+	if err = file_modifier.ChangeFiles(cfg, tmpDir); err != nil {
+		return err
+	}
 
-	load := v8.LoadExtensionConfigFromFiles(tmpDir, "ПроектнаяБиблиотекаПодсистем")
+	load := v8.LoadExtensionConfigFromFiles(tmpDir, cfg.Extension)
 
 	err = v8.Run(tmpInfoBase, load, version)
 
@@ -124,9 +139,17 @@ func ConvertFromCf(cfg *config.Configuration, sourcePath, targetDir string) erro
 		return fmt.Errorf("ошибка загрузки конфигурации расширения: %w", err)
 	}
 
-	outPath := filepath.Join(cfg.OutputPath, "PSSL_1_0_0_2.cfe")
+	outputFile := cfg.Extension
+	if outputFile != "" {
+		outputFile = dumpInfo.ConfigName
+		if dumpInfo.Version != "" {
+			outputFile += "_" + strings.ReplaceAll(dumpInfo.Version, ".", "_")
+		}
+	}
+	outputFile += ".cfe"
+	outPath := filepath.Join(cfg.OutputPath, outputFile)
 
-	dump := v8.DumpExtensionCfg(outPath, "ПроектнаяБиблиотекаПодсистем")
+	dump := v8.DumpExtensionCfg(outPath, cfg.Extension)
 
 	err = v8.Run(tmpInfoBase, dump, version)
 	if err != nil {
