@@ -23,7 +23,7 @@ type FileProcessingContext struct {
 }
 
 func ChangeFiles(cfg *config.Configuration, dir string) error {
-	files := make(map[string][]config.ElementOperation)
+	files := make(map[string][]config.ElementOperation, len(cfg.XMLFiles))
 	for _, file := range cfg.XMLFiles {
 		files[file.FileName] = file.ElementOperations
 	}
