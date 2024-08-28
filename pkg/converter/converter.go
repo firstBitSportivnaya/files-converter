@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/firstBitSportivnaya/files-converter/pkg/config"
-	"github.com/firstBitSportivnaya/files-converter/pkg/file_modifier"
+	"github.com/firstBitSportivnaya/files-converter/pkg/utils/xmlutils"
 
 	v8 "github.com/v8platform/api"
 )
@@ -64,12 +64,17 @@ func ConvertFromSourceFiles(cfg *config.Configuration, sourceDir, targetDir stri
 		return fmt.Errorf("ошибка получения исходных файлов: %w", err)
 	}
 
-	if err = file_modifier.ChangeFiles(cfg, tmpDir); err != nil {
+	if err = xmlutils.ChangeFiles(cfg, tmpDir); err != nil {
 		return err
 	}
 
+	extension := cfg.Extension
+	if extension == "" {
+		extension = dumpInfo.ConfigName
+	}
+
 	// Загрузка конфигурации расширения из исходников
-	load := v8.LoadExtensionConfigFromFiles(tmpDir, cfg.Extension)
+	load := v8.LoadExtensionConfigFromFiles(tmpDir, extension)
 
 	err = v8.Run(tmpInfoBase, load, version)
 
@@ -77,18 +82,15 @@ func ConvertFromSourceFiles(cfg *config.Configuration, sourceDir, targetDir stri
 		return fmt.Errorf("ошибка загрузки конфигурации расширения: %w", err)
 	}
 
-	outputFile := cfg.Extension
-	if outputFile == "" {
-		outputFile = dumpInfo.ConfigName
-		if dumpInfo.Version != "" {
-			outputFile += "_" + strings.ReplaceAll(dumpInfo.Version, ".", "_")
-		}
+	outputFile := extension
+	if dumpInfo.Version != "" {
+		outputFile += "_" + strings.ReplaceAll(dumpInfo.Version, ".", "_")
 	}
 	outputFile += ".cfe"
 	outPath := filepath.Join(cfg.OutputPath, outputFile)
 
 	// Выгрузка в cfe
-	dump := v8.DumpExtensionCfg(outPath, cfg.Extension)
+	dump := v8.DumpExtensionCfg(outPath, extension)
 
 	err = v8.Run(tmpInfoBase, dump, version)
 	if err != nil {
@@ -127,11 +129,16 @@ func ConvertFromCf(cfg *config.Configuration, sourcePath, targetDir string) erro
 		return fmt.Errorf("ошибка получения исходных файлов: %w", err)
 	}
 
-	if err = file_modifier.ChangeFiles(cfg, tmpDir); err != nil {
+	if err = xmlutils.ChangeFiles(cfg, tmpDir); err != nil {
 		return err
 	}
 
-	load := v8.LoadExtensionConfigFromFiles(tmpDir, cfg.Extension)
+	extension := cfg.Extension
+	if extension == "" {
+		extension = dumpInfo.ConfigName
+	}
+
+	load := v8.LoadExtensionConfigFromFiles(tmpDir, extension)
 
 	err = v8.Run(tmpInfoBase, load, version)
 
@@ -139,17 +146,14 @@ func ConvertFromCf(cfg *config.Configuration, sourcePath, targetDir string) erro
 		return fmt.Errorf("ошибка загрузки конфигурации расширения: %w", err)
 	}
 
-	outputFile := cfg.Extension
-	if outputFile != "" {
-		outputFile = dumpInfo.ConfigName
-		if dumpInfo.Version != "" {
-			outputFile += "_" + strings.ReplaceAll(dumpInfo.Version, ".", "_")
-		}
+	outputFile := extension
+	if dumpInfo.Version != "" {
+		outputFile += "_" + strings.ReplaceAll(dumpInfo.Version, ".", "_")
 	}
 	outputFile += ".cfe"
 	outPath := filepath.Join(cfg.OutputPath, outputFile)
 
-	dump := v8.DumpExtensionCfg(outPath, cfg.Extension)
+	dump := v8.DumpExtensionCfg(outPath, extension)
 
 	err = v8.Run(tmpInfoBase, dump, version)
 	if err != nil {
