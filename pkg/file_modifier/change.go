@@ -11,9 +11,18 @@ import (
 	"github.com/firstBitSportivnaya/files-converter/pkg/config"
 )
 
-var dirCommonModules = "CommonModules"
+const (
+	dirCommonModules = "CommonModules"
+	mainFile         = "Configuration.xml"
+)
 
-func ChangeFiles(cfg *config.Configuration, dir string) {
+type FileProcessingContext struct {
+	Doc      *etree.Document
+	Path     string
+	FileName string
+}
+
+func ChangeFiles(cfg *config.Configuration, dir string) error {
 	files := make(map[string][]config.ElementOperation)
 	for _, file := range cfg.XMLFiles {
 		files[file.FileName] = file.ElementOperations
@@ -23,95 +32,120 @@ func ChangeFiles(cfg *config.Configuration, dir string) {
 		if err != nil {
 			return fmt.Errorf("ошибка при обработке файла %s: %w", path, err)
 		}
-		dirEntryName := d.Name()
+		name := d.Name()
 
-		if d.IsDir() {
-			if dirEntryName == dirCommonModules {
-				return processCommonModules(path)
+		if !d.IsDir() && isXMLFile(name) {
+			doc, err := readXMLFile(path)
+			if err != nil {
+				return err
 			}
-		} else {
-			if isXMLFile(dirEntryName) {
-				if operations, found := files[dirEntryName]; found {
-					return processFile(path, dirEntryName, operations)
-				}
+			ctx := &FileProcessingContext{
+				Doc:      doc,
+				Path:     path,
+				FileName: name,
+			}
+
+			if operations, found := files[name]; found {
+				return processFile(ctx, operations)
+			} else if filepath.Base(filepath.Dir(path)) == dirCommonModules {
+				return processCommonModules(ctx)
+			} else if name == mainFile {
+				return getInfoFromMainFile(ctx)
 			}
 		}
 		return nil
 	}
 
-	err := filepath.WalkDir(dir, processFile)
-	if err != nil {
-		log.Printf("Ошибка при обходе директорий: %v\n", err)
+	if err := filepath.WalkDir(dir, processFile); err != nil {
+		return fmt.Errorf("ошибка при обходе директорий: %v", err)
 	}
-}
 
-func processCommonModules(path string) error {
-	entries, err := os.ReadDir(path)
-	if err != nil {
-		return fmt.Errorf("ошибка при чтении директории %s: %w", path, err)
-	}
-	for _, entry := range entries {
-		entryName := entry.Name()
-		if !entry.IsDir() && isXMLFile(entryName) {
-			filePath := filepath.Join(path, entryName)
-			if err := disablePrivilegedMode(filePath, entryName); err != nil {
-				return err
-			}
-		}
-	}
 	return nil
 }
 
-func processFile(path, fileName string, operations []config.ElementOperation) error {
-	doc := etree.NewDocument()
-	if err := doc.ReadFromFile(path); err != nil {
-		return fmt.Errorf("ошибка при чтении файла %s: %w", fileName, err)
+func getInfoFromMainFile(ctx *FileProcessingContext) error {
+	properties := findProperties(ctx.Doc)
+	if properties == nil {
+		return fmt.Errorf("элемент <Properties> не найден в файле %s", ctx.FileName)
+	}
+	getInfo(properties)
+	return nil
+}
+
+func getInfo(properties *etree.Element) {
+	dumpInfo := config.GetDumpInfo()
+
+	currentElem := properties.FindElement("Name")
+	if currentElem != nil {
+		dumpInfo.SetConfigName(currentElem.Text())
+	}
+	currentElem = properties.FindElement("Version")
+	if currentElem != nil {
+		dumpInfo.SetVersion(currentElem.Text())
+	}
+}
+
+func processFile(ctx *FileProcessingContext, operations []config.ElementOperation) error {
+	properties := findProperties(ctx.Doc)
+	if properties == nil {
+		return fmt.Errorf("элемент <Properties> не найден в файле %s", ctx.FileName)
 	}
 
-	properties := findProperties(doc)
-	if properties == nil {
-		return fmt.Errorf("элемент <Properties> не найден в файле %s", fileName)
+	if ctx.FileName == mainFile {
+		getInfo(properties)
 	}
 
 	for _, element := range operations {
 		processElement(properties, element)
 	}
 
-	if err := doc.WriteToFile(path); err != nil {
-		return fmt.Errorf("ошибка при записи файла %s: %w", path, err)
+	if filepath.Base(filepath.Dir(ctx.Path)) == dirCommonModules {
+		if _, err := disablePrivilegedMode(properties); err != nil {
+			return fmt.Errorf("ошибка при изменение привелигированного режима в файле %s: %w", ctx.FileName, err)
+		}
 	}
 
-	fmt.Println("Файл успешно обработан:", fileName)
+	if err := ctx.Doc.WriteToFile(ctx.Path); err != nil {
+		return fmt.Errorf("ошибка при записи файла %s: %w", ctx.Path, err)
+	}
+
+	fmt.Println("Файл успешно обработан:", ctx.FileName)
 	return nil
 }
 
-func disablePrivilegedMode(path, fileName string) error {
-	doc := etree.NewDocument()
-	if err := doc.ReadFromFile(path); err != nil {
-		return fmt.Errorf("ошибка при чтении файла %s: %w", fileName, err)
-	}
-
-	properties := findProperties(doc)
+func processCommonModules(ctx *FileProcessingContext) error {
+	properties := findProperties(ctx.Doc)
 	if properties == nil {
-		return fmt.Errorf("элемент <Properties> не найден в файле %s", fileName)
+		return fmt.Errorf("элемент <Properties> не найден в файле %s", ctx.FileName)
 	}
 
+	changed, err := disablePrivilegedMode(properties)
+	if err != nil {
+		return fmt.Errorf("ошибка при изменение привелигированного режима в файле %s: %w", ctx.FileName, err)
+	}
+	if changed {
+		if err := ctx.Doc.WriteToFile(ctx.Path); err != nil {
+			return fmt.Errorf("ошибка при записи файла %s: %w", ctx.Path, err)
+		}
+		fmt.Println("Файл успешно обработан:", ctx.FileName)
+	}
+
+	return nil
+}
+
+func disablePrivilegedMode(properties *etree.Element) (bool, error) {
 	key := "Privileged"
 	flag := properties.FindElement(key).Text()
 	value, err := strconv.ParseBool(flag)
 	if err != nil {
-		return fmt.Errorf("ошибка при парсинге значения флага %s: %w", flag, err)
+		return false, err
 	}
 	if value {
 		modifyElement(properties, key, "false")
-		if err := doc.WriteToFile(path); err != nil {
-			return fmt.Errorf("ошибка при записи файла %s: %w", path, err)
-		}
-
-		fmt.Println("Файл успешно обработан:", fileName)
+		return true, nil
 	}
 
-	return nil
+	return false, nil
 }
 
 // findProperties - Находит элемент <Properties>
@@ -122,11 +156,7 @@ func findProperties(doc *etree.Document) *etree.Element {
 func processElement(properties *etree.Element, element config.ElementOperation) {
 	switch element.Operation {
 	case config.Add:
-		if currentElem := properties.FindElement(element.ElementName); currentElem == nil {
-			addElement(properties, element.ElementName, element.Value)
-		} else {
-			modifyElement(properties, element.ElementName, element.Value)
-		}
+		addElement(properties, element.ElementName, element.Value)
 	case config.Modify:
 		modifyElement(properties, element.ElementName, element.Value)
 	case config.Delete:
@@ -137,8 +167,12 @@ func processElement(properties *etree.Element, element config.ElementOperation) 
 }
 
 func addElement(properties *etree.Element, tag, value string) {
-	currentElem := properties.CreateElement(tag)
-	currentElem.SetText(value)
+	if currentElem := properties.FindElement(tag); currentElem == nil {
+		currentElem := properties.CreateElement(tag)
+		currentElem.SetText(value)
+	} else {
+		modifyElement(properties, tag, value)
+	}
 }
 
 func modifyElement(properties *etree.Element, path, value string) {
@@ -155,6 +189,14 @@ func deleteElement(properties *etree.Element, path string) {
 	if currentElem != nil {
 		properties.RemoveChild(currentElem)
 	}
+}
+
+func readXMLFile(path string) (*etree.Document, error) {
+	doc := etree.NewDocument()
+	if err := doc.ReadFromFile(path); err != nil {
+		return nil, fmt.Errorf("ошибка при чтении файла %s: %w", path, err)
+	}
+	return doc, nil
 }
 
 func isXMLFile(fileName string) bool {

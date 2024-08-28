@@ -8,6 +8,12 @@ import (
 	"github.com/spf13/viper"
 )
 
+var info *DumpInfo
+
+func init() {
+	info = New()
+}
+
 type OperationType string
 
 const (
@@ -28,12 +34,41 @@ type FileOperation struct {
 }
 
 type Configuration struct {
-	Version        string          `mapstructure:"version"`
-	InputPath      string          `mapstructure:"input_path"`
-	OutputPath     string          `mapstructure:"output_path"`
-	ConversionType string          `mapstructure:"conversion_type"`
-	XMLFiles       []FileOperation `mapstructure:"xml_files"`
-	OtherParam     []string        `mapstructure:"other_param"`
+	PlatformVersion string          `mapstructure:"platform_version"`
+	Extension       string          `mapstructure:"extension"`
+	InputPath       string          `mapstructure:"input_path"`
+	OutputPath      string          `mapstructure:"output_path"`
+	ConversionType  string          `mapstructure:"conversion_type"`
+	XMLFiles        []FileOperation `mapstructure:"xml_files"`
+	OtherParam      []string        `mapstructure:"other_param"`
+}
+
+type DumpInfo struct {
+	ConfigName string
+	Version    string
+}
+
+func (info *DumpInfo) SetVersion(in string) {
+	if in != "" {
+		info.Version = "V" + in
+	}
+}
+
+func (info *DumpInfo) SetConfigName(in string) {
+	if in != "" {
+		info.ConfigName = in
+	}
+}
+
+func New() *DumpInfo {
+	info := new(DumpInfo)
+	info.ConfigName = "default"
+
+	return info
+}
+
+func GetDumpInfo() *DumpInfo {
+	return info
 }
 
 func LoadConfig(vp *viper.Viper) (*Configuration, error) {

@@ -17,8 +17,11 @@ The **files-converter** tool can be configured using a JSON configuration file, 
 
 ### Configuration Parameters
 
-- **`version`**: *(string)* Specifies the required platform version.
-  - **Example**: `"version": "8.3.23"`
+- **`platform_version`**: *(string)* Specifies the required platform version.
+  - **Example**: `"platform_version": "8.3.23"`
+
+- **`extension`**: *(string)* Specifies the name of the extension.
+  - **Example**: `"extension": "PSSL"`
 
 - **`input_path`**: *(string)* Path to the directory or file to be converted.
   - **Example**: `"input_path": "C:/path/to/input"`
@@ -46,7 +49,8 @@ Here's an example of a configuration file (`config.json`):
 
 ```json
 {
-  "version": "8.3.23",
+  "platform_version": "8.3.23",
+  "extension": "ПроектнаяБиблиотекаПодсистем",
   "input_path": "C:/path/to/source",
   "output_path": "C:/path/to/output",
   "conversion_type": "srcConvert",
