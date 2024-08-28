@@ -1,4 +1,4 @@
-package file_modifier
+package xmlutils
 
 import (
 	"fmt"

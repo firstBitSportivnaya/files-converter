@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/firstBitSportivnaya/files-converter/pkg/config"
-	"github.com/firstBitSportivnaya/files-converter/pkg/file_modifier"
+	"github.com/firstBitSportivnaya/files-converter/pkg/utils/xmlutils"
 
 	v8 "github.com/v8platform/api"
 )
@@ -64,7 +64,7 @@ func ConvertFromSourceFiles(cfg *config.Configuration, sourceDir, targetDir stri
 		return fmt.Errorf("ошибка получения исходных файлов: %w", err)
 	}
 
-	if err = file_modifier.ChangeFiles(cfg, tmpDir); err != nil {
+	if err = xmlutils.ChangeFiles(cfg, tmpDir); err != nil {
 		return err
 	}
 
@@ -127,7 +127,7 @@ func ConvertFromCf(cfg *config.Configuration, sourcePath, targetDir string) erro
 		return fmt.Errorf("ошибка получения исходных файлов: %w", err)
 	}
 
-	if err = file_modifier.ChangeFiles(cfg, tmpDir); err != nil {
+	if err = xmlutils.ChangeFiles(cfg, tmpDir); err != nil {
 		return err
 	}
 
