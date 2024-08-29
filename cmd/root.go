@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/firstBitSportivnaya/files-converter/pkg/config"
 	"github.com/firstBitSportivnaya/files-converter/pkg/converter"
@@ -16,9 +14,7 @@ import (
 
 var (
 	// Used for flags.
-	cfgFile    string
-	inputPath  string
-	outputPath string
+	cfgFile string
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -92,13 +88,6 @@ func runConvert(cfg *config.Configuration) {
 	if err != nil {
 		log.Printf("Не удалось конвертировать файлы: %v", err)
 	}
-}
-
-// Устарела, будет убрана, используется для совместимости
-func NormalizePaths(input, output string) (string, string) {
-	sourcePath := filepath.Clean(strings.TrimSpace(input))
-	targetPath := filepath.Clean(strings.TrimSpace(output))
-	return sourcePath, targetPath
 }
 
 func pressAnyKeyToExit() {

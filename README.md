@@ -87,17 +87,9 @@ Using the configuration file:
 ``` shell
 files-converter --config="configs/config.json"
 ```
-Convert a source files to *.cfe file:
+If no --config flag is provided, the program will use the default configuration file located at $HOME/.files-converter/configs/config.json:
 ``` shell
-files-converter srcConvert --input="C:\path\to\source" --output="C:\path\to\output"
-# or short form
-files-converter srcConvert -i="C:\path\to\source" -o="C:\path\to\output"
-```
-Convert *.cf file to *.cfe file:
-``` shell
-files-converter cfConvert --input="C:\path\to\source\PSSL.cf" --output="C:\path\to\output"
-# or short form
-files-converter cfConvert -i="C:\path\to\source\PSSL.cf" -o="C:\path\to\output"
+files-converter
 ```
 
 ## License
