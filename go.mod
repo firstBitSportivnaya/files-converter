@@ -7,6 +7,7 @@ require (
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0
 	github.com/v8platform/api v0.2.2
+	github.com/v8platform/runner v0.3.1
 )
 
 require (
@@ -31,7 +32,6 @@ require (
 	github.com/v8platform/errors v0.1.0 // indirect
 	github.com/v8platform/find v0.0.0-20200629131701-72a40bdf1034 // indirect
 	github.com/v8platform/marshaler v0.1.1 // indirect
-	github.com/v8platform/runner v0.3.1 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect

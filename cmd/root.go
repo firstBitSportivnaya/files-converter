@@ -64,9 +64,9 @@ func initConfig() {
 func runMain(cmd *cobra.Command, args []string) {
 	cfg, err := config.LoadConfig(viper.GetViper())
 	if err != nil {
-		log.Println("Ошибка загрузки конфигурации:", err)
-		return
+		log.Fatalf("ошибка загрузки конфигурации: %v", err)
 	}
+
 	fmt.Println("Используется файл конфигурации:", viper.ConfigFileUsed())
 
 	runConvert(cfg)
@@ -75,18 +75,8 @@ func runMain(cmd *cobra.Command, args []string) {
 func runConvert(cfg *config.Configuration) {
 	defer pressAnyKeyToExit()
 
-	var err error
-	switch cfg.ConversionType {
-	case "srcConvert":
-		err = converter.ConvertFromSourceFiles(cfg, "", "")
-	case "cfConvert":
-		err = converter.ConvertFromCf(cfg, "", "")
-	default:
-		log.Printf("Неизвестный тип конвертации: %s", cfg.ConversionType)
-	}
-
-	if err != nil {
-		log.Printf("Не удалось конвертировать файлы: %v", err)
+	if err := converter.RunConversion(cfg); err != nil {
+		log.Fatalf("не удалось конвертировать файлы: %v", err)
 	}
 }
 
