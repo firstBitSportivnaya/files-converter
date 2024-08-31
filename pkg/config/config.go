@@ -14,6 +14,13 @@ func init() {
 	info = New()
 }
 
+type ConvertType string
+
+const (
+	SrcConvert ConvertType = "srcConvert"
+	CfConvert  ConvertType = "cfConvert"
+)
+
 type OperationType string
 
 const (
@@ -38,7 +45,7 @@ type Configuration struct {
 	Extension       string          `mapstructure:"extension"`
 	InputPath       string          `mapstructure:"input_path"`
 	OutputPath      string          `mapstructure:"output_path"`
-	ConversionType  string          `mapstructure:"conversion_type"`
+	ConversionType  ConvertType     `mapstructure:"conversion_type"`
 	XMLFiles        []FileOperation `mapstructure:"xml_files"`
 	OtherParam      []string        `mapstructure:"other_param"`
 }

@@ -11,7 +11,26 @@ import (
 	"github.com/firstBitSportivnaya/files-converter/pkg/utils/xmlutils"
 
 	v8 "github.com/v8platform/api"
+	"github.com/v8platform/runner"
 )
+
+type SourceFileConverter struct{}
+
+func (s *SourceFileConverter) Convert(cfg *config.Configuration) error {
+	if err := ConvertToCfe(cfg); err != nil {
+		return err
+	}
+	return nil
+}
+
+type CfConverter struct{}
+
+func (c *CfConverter) Convert(cfg *config.Configuration) error {
+	if err := ConvertToCfe(cfg); err != nil {
+		return err
+	}
+	return nil
+}
 
 type TempInfoBase struct {
 	Infobase     *v8.Infobase
@@ -34,54 +53,57 @@ func (ib *TempInfoBase) Remove() {
 	}
 }
 
-func ConvertFromSourceFiles(cfg *config.Configuration, sourceDir, targetDir string) error {
+func ConvertToCfe(cfg *config.Configuration) error {
+	//
 	dumpInfo := config.GetDumpInfo()
 
 	version := v8.WithVersion(cfg.PlatformVersion)
 	tmpIB, err := createTempIB()
 	if err != nil {
-		return fmt.Errorf("ошибка при создании базы: %w", err)
+		return err
 	}
 	defer tmpIB.Remove()
 
 	tmpInfoBase := tmpIB.Infobase
 
-	// Загрузка конфигурации из файлов
-	comLoadSrc := v8.LoadConfigFromFiles(cfg.InputPath)
-	err = v8.Run(tmpInfoBase, comLoadSrc, version)
+	//
+	switch cfg.ConversionType {
+	case config.SrcConvert:
+		err = loadSourceConfig(cfg, tmpInfoBase, version)
+	case config.CfConvert:
+		err = loadCfConfig(cfg, tmpInfoBase, version)
+	}
 	if err != nil {
-		return fmt.Errorf("ошибка при загрузка конфигурации из файлов: %w", err)
+		return err
 	}
 
+	//
 	tmpDir := newTempDir("", "v8_src")
-
 	defer removeDir(tmpDir)
 
-	// получаем исходные файлы для изменений, потом переработать на копирование каталога
+	//
 	comDumpConfigToFiles := v8.DumpConfigToFiles(tmpDir)
-	err = v8.Run(tmpInfoBase, comDumpConfigToFiles, version)
-	if err != nil {
+	if err = v8.Run(tmpInfoBase, comDumpConfigToFiles, version); err != nil {
 		return fmt.Errorf("ошибка получения исходных файлов: %w", err)
 	}
 
+	//
 	if err = xmlutils.ChangeFiles(cfg, tmpDir); err != nil {
 		return err
 	}
 
+	//
 	extension := cfg.Extension
 	if extension == "" {
 		extension = dumpInfo.ConfigName
 	}
 
-	// Загрузка конфигурации расширения из исходников
 	load := v8.LoadExtensionConfigFromFiles(tmpDir, extension)
-
-	err = v8.Run(tmpInfoBase, load, version)
-
-	if err != nil {
+	if err = v8.Run(tmpInfoBase, load, version); err != nil {
 		return fmt.Errorf("ошибка загрузки конфигурации расширения: %w", err)
 	}
 
+	//
 	outputFile := extension
 	if dumpInfo.Version != "" {
 		outputFile += "_" + strings.ReplaceAll(dumpInfo.Version, ".", "_")
@@ -89,11 +111,8 @@ func ConvertFromSourceFiles(cfg *config.Configuration, sourceDir, targetDir stri
 	outputFile += ".cfe"
 	outPath := filepath.Join(cfg.OutputPath, outputFile)
 
-	// Выгрузка в cfe
 	dump := v8.DumpExtensionCfg(outPath, extension)
-
-	err = v8.Run(tmpInfoBase, dump, version)
-	if err != nil {
+	if err = v8.Run(tmpInfoBase, dump, version); err != nil {
 		return fmt.Errorf("ошибка при выгрузке в файл .cfe: %w", err)
 	}
 
@@ -102,66 +121,19 @@ func ConvertFromSourceFiles(cfg *config.Configuration, sourceDir, targetDir stri
 	return nil
 }
 
-func ConvertFromCf(cfg *config.Configuration, sourcePath, targetDir string) error {
-	dumpInfo := config.GetDumpInfo()
-
-	version := v8.WithVersion(cfg.PlatformVersion)
-	tmpIB, err := createTempIB()
-	if err != nil {
-		return fmt.Errorf("ошибка при создании базы: %w", err)
+func loadSourceConfig(cfg *config.Configuration, tmpInfoBase *v8.Infobase, version runner.Option) error {
+	comLoadSrc := v8.LoadConfigFromFiles(cfg.InputPath)
+	if err := v8.Run(tmpInfoBase, comLoadSrc, version); err != nil {
+		return fmt.Errorf("ошибка при загрузка конфигурации из файлов: %w", err)
 	}
-	defer tmpIB.Remove()
+	return nil
+}
 
-	tmpInfoBase := tmpIB.Infobase
-
+func loadCfConfig(cfg *config.Configuration, tmpInfoBase *v8.Infobase, version runner.Option) error {
 	comLoadCfg := v8.LoadCfg(cfg.InputPath)
-	err = v8.Run(tmpInfoBase, comLoadCfg, version)
-	if err != nil {
+	if err := v8.Run(tmpInfoBase, comLoadCfg, version); err != nil {
 		return fmt.Errorf("ошибка при загрузка конфигурации из файла: %w", err)
 	}
-
-	tmpDir := newTempDir("", "v8_src")
-	defer removeDir(tmpDir)
-
-	comDumpConfigToFiles := v8.DumpConfigToFiles(tmpDir)
-	err = v8.Run(tmpInfoBase, comDumpConfigToFiles, version)
-	if err != nil {
-		return fmt.Errorf("ошибка получения исходных файлов: %w", err)
-	}
-
-	if err = xmlutils.ChangeFiles(cfg, tmpDir); err != nil {
-		return err
-	}
-
-	extension := cfg.Extension
-	if extension == "" {
-		extension = dumpInfo.ConfigName
-	}
-
-	load := v8.LoadExtensionConfigFromFiles(tmpDir, extension)
-
-	err = v8.Run(tmpInfoBase, load, version)
-
-	if err != nil {
-		return fmt.Errorf("ошибка загрузки конфигурации расширения: %w", err)
-	}
-
-	outputFile := extension
-	if dumpInfo.Version != "" {
-		outputFile += "_" + strings.ReplaceAll(dumpInfo.Version, ".", "_")
-	}
-	outputFile += ".cfe"
-	outPath := filepath.Join(cfg.OutputPath, outputFile)
-
-	dump := v8.DumpExtensionCfg(outPath, extension)
-
-	err = v8.Run(tmpInfoBase, dump, version)
-	if err != nil {
-		return fmt.Errorf("ошибка при выгрузке в файл .cfe: %w", err)
-	}
-
-	fmt.Printf("файл *.cfe успешно сохранен в дирректорию: %s\n", cfg.OutputPath)
-
 	return nil
 }
 
@@ -182,7 +154,7 @@ func removeDir(dir string) {
 func createTempIB() (*TempInfoBase, error) {
 	tmpInfoBase, err := v8.CreateTempInfobase()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("ошибка при создании базы: %w", err)
 	}
 
 	infobase := &TempInfoBase{
