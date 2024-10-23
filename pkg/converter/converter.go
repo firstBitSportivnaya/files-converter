@@ -8,7 +8,8 @@ import (
 	"strings"
 
 	"github.com/firstBitSportivnaya/files-converter/pkg/config"
-	"github.com/firstBitSportivnaya/files-converter/pkg/utils/xmlutils"
+	"github.com/firstBitSportivnaya/files-converter/pkg/utils/fileutil"
+	xmlutil "github.com/firstBitSportivnaya/files-converter/pkg/utils/xmlutil"
 
 	v8 "github.com/v8platform/api"
 	"github.com/v8platform/runner"
@@ -54,7 +55,6 @@ func (ib *TempInfoBase) Remove() {
 }
 
 func ConvertToCfe(cfg *config.Configuration) error {
-	//
 	dumpInfo := config.GetDumpInfo()
 
 	version := v8.WithVersion(cfg.PlatformVersion)
@@ -66,33 +66,29 @@ func ConvertToCfe(cfg *config.Configuration) error {
 
 	tmpInfoBase := tmpIB.Infobase
 
-	//
-	switch cfg.ConversionType {
-	case config.SrcConvert:
-		err = loadSourceConfig(cfg, tmpInfoBase, version)
-	case config.CfConvert:
-		err = loadCfConfig(cfg, tmpInfoBase, version)
-	}
-	if err != nil {
-		return err
-	}
-
-	//
 	tmpDir := newTempDir("", "v8_src")
 	defer removeDir(tmpDir)
 
-	//
-	comDumpConfigToFiles := v8.DumpConfigToFiles(tmpDir)
-	if err = v8.Run(tmpInfoBase, comDumpConfigToFiles, version); err != nil {
-		return fmt.Errorf("ошибка получения исходных файлов: %w", err)
+	switch cfg.ConversionType {
+	case config.SrcConvert:
+		if err = fileutil.CopyDir(cfg.InputPath, tmpDir); err != nil {
+			return err
+		}
+	case config.CfConvert:
+		if err = loadCfConfig(cfg, tmpInfoBase, version); err != nil {
+			return err
+		}
+
+		comDumpConfigToFiles := v8.DumpConfigToFiles(tmpDir)
+		if err = v8.Run(tmpInfoBase, comDumpConfigToFiles, version); err != nil {
+			return fmt.Errorf("ошибка получения исходных файлов: %w", err)
+		}
 	}
 
-	//
-	if err = xmlutils.ChangeFiles(cfg, tmpDir); err != nil {
+	if err = xmlutil.ChangeFiles(cfg, tmpDir); err != nil {
 		return err
 	}
 
-	//
 	extension := cfg.Extension
 	if extension == "" {
 		extension = dumpInfo.ConfigName
@@ -103,7 +99,6 @@ func ConvertToCfe(cfg *config.Configuration) error {
 		return fmt.Errorf("ошибка загрузки конфигурации расширения: %w", err)
 	}
 
-	//
 	outputFile := extension
 	if dumpInfo.Version != "" {
 		outputFile += "_" + strings.ReplaceAll(dumpInfo.Version, ".", "_")
@@ -118,14 +113,6 @@ func ConvertToCfe(cfg *config.Configuration) error {
 
 	fmt.Printf("файл *.cfe успешно сохранен в дирректорию: %s\n", cfg.InputPath)
 
-	return nil
-}
-
-func loadSourceConfig(cfg *config.Configuration, tmpInfoBase *v8.Infobase, version runner.Option) error {
-	comLoadSrc := v8.LoadConfigFromFiles(cfg.InputPath)
-	if err := v8.Run(tmpInfoBase, comLoadSrc, version); err != nil {
-		return fmt.Errorf("ошибка при загрузка конфигурации из файлов: %w", err)
-	}
 	return nil
 }
 
