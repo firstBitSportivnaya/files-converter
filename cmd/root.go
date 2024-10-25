@@ -40,11 +40,33 @@ func Execute() {
 }
 
 func init() {
-	cobra.OnInitialize(initConfig)
-
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.files-converter/configs/config.json)")
 
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
+}
+
+func runMain(cmd *cobra.Command, args []string) {
+	initDefaultConfig()
+	defaultCfg, err := config.LoadConfig()
+	if err != nil {
+		log.Fatalf("ошибка загрузки конфигурации: %v", err)
+	}
+
+	initConfig()
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		log.Fatalf("ошибка загрузки конфигурации: %v", err)
+	}
+
+	mergeConfigs(defaultCfg, cfg)
+
+	runConvert(defaultCfg)
+}
+
+func initDefaultConfig() {
+	viper.AddConfigPath("./configs")
+	viper.SetConfigName("default")
+	viper.SetConfigType("json")
 }
 
 func initConfig() {
@@ -56,20 +78,21 @@ func initConfig() {
 		viper.AddConfigPath("./configs")
 
 		viper.AddConfigPath("$HOME/.files-converter/configs")
-		viper.AddConfigPath("/etc/files-converter")
+		viper.AddConfigPath("/etc/files-converter/configs")
 	}
-	viper.AutomaticEnv()
 }
 
-func runMain(cmd *cobra.Command, args []string) {
-	cfg, err := config.LoadConfig(viper.GetViper())
-	if err != nil {
-		log.Fatalf("ошибка загрузки конфигурации: %v", err)
+func mergeConfigs(defaultCfg, cfg *config.Configuration) {
+	if cfg.PlatformVersion != "" {
+		defaultCfg.PlatformVersion = cfg.PlatformVersion
 	}
 
-	fmt.Println("Используется файл конфигурации:", viper.ConfigFileUsed())
+	defaultCfg.Extension = cfg.Extension
+	defaultCfg.InputPath = cfg.InputPath
+	defaultCfg.OutputPath = cfg.OutputPath
+	defaultCfg.ConversionType = cfg.ConversionType
 
-	runConvert(cfg)
+	defaultCfg.XMLFiles = append(defaultCfg.XMLFiles, cfg.XMLFiles...)
 }
 
 func runConvert(cfg *config.Configuration) {
