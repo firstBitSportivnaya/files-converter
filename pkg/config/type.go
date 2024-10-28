@@ -1,5 +1,7 @@
 package config
 
+const NamePrefixElement = "NamePrefix"
+
 type ConvertType string
 
 const (

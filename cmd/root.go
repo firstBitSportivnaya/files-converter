@@ -75,16 +75,13 @@ func changeXmlFiles(cfg *config.Configuration) {
 
 func setNamePrefix(file *config.FileOperation, prefix string) {
 	for _, operation := range file.ElementOperations {
-		if operation.ElementName == "NamePrefix" {
+		if operation.ElementName == config.NamePrefixElement {
 			operation.Value = prefix
 			return
 		}
 	}
-	element := &config.ElementOperation{
-		ElementName: "NamePrefix",
-		Value:       prefix,
-		Operation:   config.Add,
-	}
+
+	element := config.NewElementOperation(config.NamePrefixElement, prefix, config.Add)
 	file.ElementOperations = append(file.ElementOperations, element)
 }
 
