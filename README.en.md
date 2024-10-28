@@ -37,7 +37,7 @@
 
 ### Optional
 
-- **`xml_files`**: *(array)* - a list of XML files and their associated operations. For example, to change the flag in a cpmmon module or add a configuration prefix.
+- **`xml_files`**: *(array)* - a list of XML files to be modified. For example, to change the flag in a common module or add a configuration prefix. To better understand the setting of the xml_files parameter, users can view the `./configs/default.json` settings file, where an example of usage is given. This file shows how to properly structure the parameters for XML files and operations in order to effectively manage XML elements during the conversion process.
   - **`file_name`**: *(string)* - the name of the XML file to operate on.
     - **Example**: `"file_name": "example.xml"`
   - **`element_operations`**: *(array)* - a list of operations to perform on elements within the XML file.
@@ -49,33 +49,6 @@
       - `"modify"` - change element.
     - **`value`**: *(string, optional)* - the new value to set for the element (used with `add` and `modify` operations).
       - **Example**: `"value": "false"`
-
-### Example Configuration File
-
-Here's an example of a configuration file (`config.json`):
-
-```json
-{
-  "platform_version": "8.3.23",
-  "extension": "ProjectSubsystemsLibrary",
-  "prefix": "pssl_",
-  "input_path": "C:/path/to/source",
-  "output_path": "C:/path/to/output",
-  "conversion_type": "srcConvert",
-  "xml_files": [
-    {
-      "file_name": "example.xml",
-      "element_operations": [
-        {
-          "element_name": "Global",
-          "operation": "modify",
-          "value": "false"
-        }
-      ]
-    }
-  ]
-}
-```
 
 ## Usage
 
