@@ -4,6 +4,5 @@
     "prefix": "пбп_",
     "input_path": "C:/path/to/source",
     "output_path": "C:/path/to/output",
-    "conversion_type": "srcConvert",
-    "xml_file_changes": []
+    "conversion_type": "srcConvert"
     }
