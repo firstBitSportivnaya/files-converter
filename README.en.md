@@ -37,7 +37,7 @@
 
 ### Optional
 
-- **`xml_files`**: *(array)* - a list of XML files and their associated operations.
+- **`xml_files`**: *(array)* - a list of XML files and their associated operations. For example, to change the flag in a cpmmon module or add a configuration prefix.
   - **`file_name`**: *(string)* - the name of the XML file to operate on.
     - **Example**: `"file_name": "example.xml"`
   - **`element_operations`**: *(array)* - a list of operations to perform on elements within the XML file.
