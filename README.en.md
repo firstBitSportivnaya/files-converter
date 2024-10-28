@@ -13,6 +13,10 @@
 
 ## Configuration file usage
 
+There are two configuration files in the project:
+- default.json - contains the basic settings for automatic conversion. Usage example: [default.json](configs/default.json)
+- config.json is a custom file in which you can specify parameters such as paths, prefix, configuration name, as well as additional XML files to modify certain elements if you need to configure something further in addition to the standard conversion. Usage example: [SL/cf-converter-config.json](https://github.com/firstBitSportivnaya/PSL/blob/develop/cfe-converter-config.json)
+
 ### Required
 
 - **`platform_version`**: *(string)* - specifies the platform version.
@@ -37,7 +41,7 @@
 
 ### Optional
 
-- **`xml_files`**: *(array)* - a list of XML files to be modified. For example, to change the flag in a common module or add a configuration prefix. To better understand the setting of the xml_files parameter, users can view the `./configs/default.json` settings file, where an example of usage is given. This file shows how to properly structure the parameters for XML files and operations in order to effectively manage XML elements during the conversion process.
+- **`xml_files`**: *(array)* - a list of XML files to be modified. This is useful if you want to automatically change specific elements in XML files corresponding to configuration settings, without manual editing. For example, you can add, change or delete elements, which makes the conversion process flexible and adaptable to the needs of the project. Usage example: [xml_files](configs/default.json#3)
   - **`file_name`**: *(string)* - the name of the XML file to operate on.
     - **Example**: `"file_name": "example.xml"`
   - **`element_operations`**: *(array)* - a list of operations to perform on elements within the XML file.
