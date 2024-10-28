@@ -1,96 +1,95 @@
-# Files Converter
+# Конвертер файлов
 
-## Overview
+## Обзор
 
-**files-converter** - is a tool specifically designed to convert source configuration files or *.cf files from one format to another. This project uses Cobra for advanced parameter handling, simplified command-line interface, and argument and parameter management.
+**files-converter** - это инструмент для конвертации исходных файлов конфигурации или *.cf файла в *.cfe файл и обратно.
 
-## Features
-**Configuration File Conversion:** Convert configuration files or *.cf files between different formats.  
-**Customizable Options:** Specify output formats, file destinations, and more.  
+## Функциональность
+- Реализована конвертация из *.cf файла в *.cfe файл.
+- Реализована конвертация из исходных файлов(конфигурация) в *.cfe файл.
+- Не реализована конвертация из *.cfe файла в *.cf файл.
+- Не реализована конвертация из исходных файлов(расширение) в *.cf файл.
 
-## Functionality
-- Conversion of the *.cf form to *.cfe is implemented.
-- Conversion of source files to *.cfe is implemented.
+## Использование файла настроек
+**files-converter** поддерживает файл настроек по умолчанию, который расположен в `$HOME/.files-converter/configs/default.json`. Файл содержит настройки необходимые для конвертации в расширение (*.cfe).
+Чтобы использовать свой конфигурационный файл, расположите файл в `$HOME/.files-converter/configs` с именем файла `config.json` или укажите путь с помощью флага `--config`:
 
-## Configuration File
-The **files-converter** tool can be configured using a JSON configuration file, allowing you to predefine settings such as input paths, output paths, and conversion types.
+```shell
+files-converter --config="pathToConfig/config.json"
+```
 
-### Configuration Parameters
+### Параметры конфигурационного файла
 
-- **`platform_version`**: *(string)* Specifies the required platform version.
-  - **Example**: `"platform_version": "8.3.23"`
+#### Обязательные
 
-- **`extension`**: *(string)* Specifies the name of the extension.
+- **`platform_version`**: *(строка)* - версию платформы.
+  - **Пример**: `"platform_version": "8.3.23"`
+
+- **`extension`**: *(строка)* - имя расширения.
   - **Example**: `"extension": "PSSL"`
 
-- **`input_path`**: *(string)* Path to the directory or file to be converted.
+- **`prefix`**: *(строка)* - префикс, который используется для имени объектов метаданных.
+  - **Example**: `"prefix": "пбп_"`
+
+- **`input_path`**: *(строка)* - путь к каталогу или файлу для конвертации.
   - **Example**: `"input_path": "C:/path/to/input"`
 
-- **`output_path`**: *(string)* Path where the converted files will be saved.
+- **`output_path`**: *(строка)* - путь, по которому будут сохранены преобразованные файлы.
   - **Example**: `"output_path": "C:/path/to/output"`
 
-- **`conversion_type`**: *(string)* Specifies the type of conversion to perform. Valid values are `"srcConvert"` and `"cfConvert"`.
+- **`conversion_type`**: *(строка)* - тип выполняемой конвертации. Поддерживаемые значения:
+  - `"srcConvert"` - конвертация исходных файлов в *.cfe.
+  - `"cfConvert"` - конвертация конфигурационного файла *.cf в *.cfe.
   - **Example**: `"conversion_type": "srcConvert"`
 
-- **`xml_files`**: *(array)* A list of XML files and their associated operations.
-  - **`file_name`**: *(string)* The name of the XML file to operate on.
+#### Необязательные
+
+- **`xml_files`**: *(массив)* - список файлов XML, в которые необходимо внести изменения.
+  - **`file_name`**: *(строка)* - имя XML-файла который нужно изменить.
     - **Example**: `"file_name": "example.xml"`
-  - **`element_operations`**: *(array)* A list of operations to perform on elements within the XML file.
-    - **`element_name`**: *(string)* The name of the XML element to modify.
-      - **Example**: `"element_name": "SampleElement"`
-    - **`operation`**: *(string)* The type of operation (`"add"`, `"delete"`, `"modify"`).
+  - **`element_operations`**: *(массив)* - список операций, которые необходимо выполнить над элементами в XML-файле.
+    - **`element_name`**: *(строка)* - имя элемента XML, который нужно изменить.
+      - **Example**: `"element_name": "Global"`
+    - **`operation`**: *(строка)* - тип операции. Поддерживаемые значения: 
+      - `"add"` - добавление элемента.
+      - `"delete"` - удаление элемента.
+      - `"modify"` - изменение элемента.
       - **Example**: `"operation": "modify"`
-    - **`value`**: *(string, optional)* The new value to set for the element (used with `add` and `modify` operations).
-      - **Example**: `"value": "NewValue"`
+    - **`value`**: *(строка, опционально)* - новое значение, которое нужно установить для элемента. (используется с операциями: `add` и `modify`).
+      - **Example**: `"value": "false"`
 
-### Example Configuration File
+## Использование
 
-Here's an example of a configuration file (`config.json`):
+Инструмент можно установить, запустив:
 
-```json
-{
-  "platform_version": "8.3.23",
-  "extension": "ПроектнаяБиблиотекаПодсистем",
-  "input_path": "C:/path/to/source",
-  "output_path": "C:/path/to/output",
-  "conversion_type": "srcConvert",
-  "xml_files": [
-    {
-      "file_name": "example.xml",
-      "element_operations": [
-        {
-          "element_name": "SampleElement",
-          "operation": "modify",
-          "value": "NewValue"
-        }
-      ]
-    }
-  ]
-}
-```
-
-## Usage
-It can be installed by running:
-``` shell
+```shell
 go install github.com/firstBitSportivnaya/files-converter@latest
 ```
-**Note:**  The use of this program requires the appropriate platform (8.3.23).
 
-## Help Command
-For more information on available commands and options:
-``` shell
+**Примечание:** Для использования этой программы требуется соответствующая версия платформы (8.3.23).
+
+## Справочная информация:
+
+Для получения информации о доступных командах и параметрах:
+
+```shell
 files-converter --help
 ```
 
-## Examples
-Using the configuration file:
-``` shell
-files-converter --config="configs/config.json"
+## Примеры
+
+Использование конфигурационного файла:
+
+```shell
+files-converter --config="path/config.json"
 ```
-If no --config flag is provided, the program will use the default configuration file located at $HOME/.files-converter/configs/config.json:
-``` shell
+
+Если флаг --config не указан, программа использует конфигурационный файл по умолчанию, расположенный в $HOME/.files-converter/configs/config.json:
+
+```shell
 files-converter
 ```
 
-## License
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+## Лицензия
+
+Этот проект лицензирован по лицензии MIT. Подробнее см. файл [LICENSE](LICENSE).
