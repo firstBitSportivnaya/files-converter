@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/beevik/etree"
 	"github.com/firstBitSportivnaya/files-converter/pkg/config"
@@ -14,6 +15,7 @@ import (
 const (
 	dirCommonModules = "CommonModules"
 	mainFile         = "Configuration.xml"
+	configDumpInfo   = "ConfigDumpInfo.xml"
 )
 
 type FileProcessingContext struct {
@@ -23,10 +25,12 @@ type FileProcessingContext struct {
 }
 
 func ChangeFiles(cfg *config.Configuration, dir string) error {
-	files := make(map[string][]config.ElementOperation, len(cfg.XMLFiles))
+	files := make(map[string][]*config.ElementOperation, len(cfg.XMLFiles))
 	for _, file := range cfg.XMLFiles {
 		files[file.FileName] = file.ElementOperations
 	}
+
+	defaultOps := defaultOperations()
 
 	processFile := func(path string, d os.DirEntry, err error) error {
 		if err != nil {
@@ -47,6 +51,8 @@ func ChangeFiles(cfg *config.Configuration, dir string) error {
 
 			if operations, found := files[name]; found {
 				return processFile(ctx, operations)
+			} else if isProcessableFile(dir, path, cfg.Prefix) && name != configDumpInfo {
+				return processFile(ctx, defaultOps)
 			} else if filepath.Base(filepath.Dir(path)) == dirCommonModules {
 				return processCommonModules(ctx)
 			} else if name == mainFile {
@@ -61,6 +67,41 @@ func ChangeFiles(cfg *config.Configuration, dir string) error {
 	}
 
 	return nil
+}
+
+func defaultOperations() []*config.ElementOperation {
+	operations := make([]*config.ElementOperation, 0, 1)
+
+	operations = append(operations, config.NewElementOperation("ObjectBelonging", "Adopted", config.Add))
+
+	return operations
+}
+
+func isProcessableFile(root, path, prefix string) bool {
+	relPath, err := filepath.Rel(root, path)
+	if err != nil {
+		log.Printf("ошибка при получении относительного пути: %v", err)
+		return false
+	}
+	parts := strings.Split(filepath.ToSlash(relPath), "/")
+
+	if len(parts) > 2 {
+		return false
+	}
+
+	return !containsPrefix(relPath, prefix)
+}
+
+func containsPrefix(path, prefix string) bool {
+	parts := strings.Split(filepath.ToSlash(path), "/")
+
+	for i := len(parts) - 1; i >= 0; i-- {
+		if strings.HasPrefix(parts[i], prefix) || strings.HasPrefix(parts[i], "_") {
+			return true
+		}
+	}
+
+	return false
 }
 
 func getInfoFromMainFile(ctx *FileProcessingContext) error {
@@ -85,7 +126,7 @@ func getInfo(properties *etree.Element) {
 	}
 }
 
-func processFile(ctx *FileProcessingContext, operations []config.ElementOperation) error {
+func processFile(ctx *FileProcessingContext, operations []*config.ElementOperation) error {
 	properties := findProperties(ctx.Doc)
 	if properties == nil {
 		return fmt.Errorf("элемент <Properties> не найден в файле %s", ctx.FileName)
@@ -153,7 +194,7 @@ func findProperties(doc *etree.Document) *etree.Element {
 	return doc.FindElement("//Properties")
 }
 
-func processElement(properties *etree.Element, element config.ElementOperation) {
+func processElement(properties *etree.Element, element *config.ElementOperation) {
 	switch element.Operation {
 	case config.Add:
 		addElement(properties, element.ElementName, element.Value)

@@ -1,59 +1,9 @@
 {
     "platform_version": "8.3.23",
     "extension": "ПроектнаяБиблиотекаПодсистем",
+    "prefix": "пбп_",
     "input_path": "C:/path/to/source",
     "output_path": "C:/path/to/output",
     "conversion_type": "srcConvert",
-    "xml_file_changes": [
-            {
-                "file_name": "Русский.xml",
-                "element_operations": [
-                    {
-                        "element_name": "ObjectBelonging",
-                        "value": "Adopted",
-                        "operation": "add"
-                    }
-                ]
-            },
-            {
-                "file_name": "English.xml",
-                "element_operations": [
-                    {
-                        "element_name": "ObjectBelonging",
-                        "value": "Adopted",
-                        "operation": "add"
-                    }
-                ]
-            },
-            {
-                "file_name": "АдминистраторСистемы.xml",
-                "element_operations": [
-                    {
-                        "element_name": "ObjectBelonging",
-                        "value": "Adopted",
-                        "operation": "add"
-                    }
-                ]
-            },
-            {
-                "file_name": "ИнтерактивноеОткрытиеВнешнихОтчетовИОбработок.xml",
-                "element_operations": [
-                    {
-                        "element_name": "ObjectBelonging",
-                        "value": "Adopted",
-                        "operation": "add"
-                    }
-                ]
-            },
-            {
-                "file_name": "ПолныеПрава.xml",
-                "element_operations": [
-                    {
-                        "element_name": "ObjectBelonging",
-                        "value": "Adopted",
-                        "operation": "add"
-                    }
-                ]
-            }
-        ]
+    "xml_file_changes": []
     }
