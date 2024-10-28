@@ -60,7 +60,29 @@ func runMain(cmd *cobra.Command, args []string) {
 
 	mergeConfigs(defaultCfg, cfg)
 
+	changeXmlFiles(defaultCfg)
+
 	runConvert(defaultCfg)
+}
+
+func changeXmlFiles(cfg *config.Configuration) {
+	for _, xmlFile := range cfg.XMLFiles {
+		if xmlFile.FileName == "Configuration.xml" {
+			setNamePrefix(xmlFile, cfg.Prefix)
+		}
+	}
+}
+
+func setNamePrefix(file *config.FileOperation, prefix string) {
+	for _, operation := range file.ElementOperations {
+		if operation.ElementName == config.NamePrefixElement {
+			operation.Value = prefix
+			return
+		}
+	}
+
+	element := config.NewElementOperation(config.NamePrefixElement, prefix, config.Add)
+	file.ElementOperations = append(file.ElementOperations, element)
 }
 
 func initDefaultConfig() {
@@ -88,6 +110,7 @@ func mergeConfigs(defaultCfg, cfg *config.Configuration) {
 	}
 
 	defaultCfg.Extension = cfg.Extension
+	defaultCfg.Prefix = cfg.Prefix
 	defaultCfg.InputPath = cfg.InputPath
 	defaultCfg.OutputPath = cfg.OutputPath
 	defaultCfg.ConversionType = cfg.ConversionType

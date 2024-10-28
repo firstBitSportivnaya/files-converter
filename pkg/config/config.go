@@ -77,3 +77,11 @@ func NormalizePath(input string) (string, error) {
 
 	return cleanPath, nil
 }
+
+func NewElementOperation(name string, value string, operation OperationType) *ElementOperation {
+	return &ElementOperation{
+		ElementName: name,
+		Value:       value,
+		Operation:   operation,
+	}
+}
