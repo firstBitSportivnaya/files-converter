@@ -111,7 +111,7 @@ func ConvertToCfe(cfg *config.Configuration) error {
 		return fmt.Errorf("ошибка при выгрузке в файл .cfe: %w", err)
 	}
 
-	fmt.Printf("файл *.cfe успешно сохранен в дирректорию: %s\n", cfg.InputPath)
+	fmt.Printf("файл *.cfe успешно сохранен в дирректорию: %s\n", cfg.OutputPath)
 
 	return nil
 }
