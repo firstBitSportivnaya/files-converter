@@ -54,6 +54,10 @@ There are two configuration files in the project:
     - **`value`**: *(string, optional)* - the new value to set for the element (used with `add` and `modify` operations).
       - **Example**: `"value": "false"`
 
+## Automatic detection of platform version
+
+For the conversion type (`conversion_type: "srcConvert"`), an attempt will be made to determine the platform version based on the **upload format version** specified in the `"Configuration.xml"` file. For example, for the download format version `2.16`, the platform version `8.3.23` will be installed. See the conformance file [export_format_versions.json](configs/export_format_versions.json) for details.
+
 ## Usage
 
 It can be installed by running:
