@@ -69,6 +69,21 @@ func ChangeFiles(cfg *config.Configuration, dir string) error {
 	return nil
 }
 
+func GetFormatVersion(path string) (string, error) {
+	doc, err := readXMLFile(filepath.Join(path, mainFile))
+	if err != nil {
+		return "", err
+	}
+
+	metaDataObject := doc.SelectElement("MetaDataObject")
+
+	if metaDataObject == nil {
+		return "", fmt.Errorf("MetaDataObject элемент не найден в %s", mainFile)
+	}
+
+	return metaDataObject.SelectAttrValue("version", ""), nil
+}
+
 func defaultOperations() []*config.ElementOperation {
 	operations := make([]*config.ElementOperation, 0, 1)
 

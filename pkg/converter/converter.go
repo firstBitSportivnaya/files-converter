@@ -8,12 +8,15 @@ import (
 	"strings"
 
 	"github.com/firstBitSportivnaya/files-converter/pkg/config"
+	"github.com/firstBitSportivnaya/files-converter/pkg/export_format"
 	"github.com/firstBitSportivnaya/files-converter/pkg/utils/fileutil"
 	xmlutil "github.com/firstBitSportivnaya/files-converter/pkg/utils/xmlutil"
 
 	v8 "github.com/v8platform/api"
 	"github.com/v8platform/runner"
 )
+
+const pathExportFormatFile = "./configs/export_format_versions.json"
 
 type SourceFileConverter struct{}
 
@@ -74,6 +77,20 @@ func ConvertToCfe(cfg *config.Configuration) error {
 		if err = fileutil.CopyDir(cfg.InputPath, tmpDir); err != nil {
 			return err
 		}
+
+		formatVersion, err := xmlutil.GetFormatVersion(tmpDir)
+		if err != nil {
+			return err
+		}
+
+		exportFomatVersions, err := export_format.LoadFormatVersions(pathExportFormatFile)
+		if err != nil {
+			return err
+		}
+
+		platformVersion := exportFomatVersions[formatVersion]
+
+		version = v8.WithVersion(platformVersion)
 	case config.CfConvert:
 		if err = loadCfConfig(cfg, tmpInfoBase, version); err != nil {
 			return err
