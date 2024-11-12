@@ -77,6 +77,10 @@ func GetFormatVersion(path string) (string, error) {
 
 	metaDataObject := doc.SelectElement("MetaDataObject")
 
+	if metaDataObject == nil {
+		return "", fmt.Errorf("MetaDataObject элемент не найден в %s", mainFile)
+	}
+
 	return metaDataObject.SelectAttrValue("version", ""), nil
 }
 
