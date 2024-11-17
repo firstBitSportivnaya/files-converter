@@ -1,5 +1,8 @@
 # Конвертер файлов 1С в *.cfe
 
+[![GitHub issues](https://img.shields.io/github/issues-raw/firstBitSportivnaya/files-converter?style=badge)](https://github.com/firstBitSportivnaya/files-converter/issues)
+[![License](https://img.shields.io/github/license/firstBitSportivnaya/files-converter?style=badge)](https://github.com/firstBitSportivnaya/files-converter/blob/main/LICENSE)
+
 ## Обзор
 
 **files-converter** - это инструмент для конвертации исходных файлов конфигурации или *.cf файла в *.cfe файл и обратно.
