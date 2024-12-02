@@ -13,11 +13,9 @@ import (
 )
 
 var (
-	// Used for flags.
-	cfgFile string
+	configPath string
 )
 
-// rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "files-converter",
 	Short: "A tool for converting files to the *.cfe format",
@@ -31,23 +29,21 @@ This tool simplifies the conversion process, making it easy and efficient to man
 	Run: runMain,
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
+		_, _ = fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.files-converter/configs/config.json)")
+	rootCmd.PersistentFlags().StringVar(&configPath, "config", "", "config file (default is $HOME/.files-converter/configs/config.json)")
 
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
 }
 
 func runMain(cmd *cobra.Command, args []string) {
-	initDefaultConfig()
-	defaultCfg, err := config.LoadConfig()
+	defaultCfg, err := config.GetDefaultConfig()
 	if err != nil {
 		log.Fatalf("ошибка загрузки конфигурации: %v", err)
 	}
@@ -85,21 +81,15 @@ func setNamePrefix(file *config.FileOperation, prefix string) {
 	file.ElementOperations = append(file.ElementOperations, element)
 }
 
-func initDefaultConfig() {
-	viper.AddConfigPath("./configs")
-	viper.SetConfigName("default")
-	viper.SetConfigType("json")
-}
-
 func initConfig() {
-	if cfgFile != "" {
-		viper.SetConfigFile(cfgFile)
+	if configPath != "" {
+		viper.SetConfigFile(configPath)
 	} else {
 		viper.SetConfigName("config")
 		viper.SetConfigType("json")
 		viper.AddConfigPath("./configs")
 
-		viper.AddConfigPath("$HOME/.files-converter/configs")
+		viper.AddConfigPath("$HOME/files-converter/configs")
 		viper.AddConfigPath("/etc/files-converter/configs")
 	}
 }

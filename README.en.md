@@ -14,7 +14,7 @@
 ## Configuration file usage
 
 There are two configuration files in the project:
-- default.json - contains the basic settings for automatic conversion. Usage example: [default.json](configs/default.json)
+- default.json - contains the basic settings for automatic conversion. Usage example: [default.json](pkg/config/default.json)
 - config.json is a custom file in which you can specify parameters such as paths, prefix, configuration name, as well as additional XML files to modify certain elements if you need to configure something further in addition to the standard conversion. Usage example: [SL/cf-converter-config.json](https://github.com/firstBitSportivnaya/PSL/blob/develop/cfe-converter-config.json)
 
 ### Required
@@ -41,7 +41,7 @@ There are two configuration files in the project:
 
 ### Optional
 
-- **`xml_files`**: *(array)* - a list of XML files to be modified. This is useful if you want to automatically change specific elements in XML files corresponding to configuration settings, without manual editing. For example, you can add, change or delete elements, which makes the conversion process flexible and adaptable to the needs of the project. Usage example: [xml_files](configs/default.json#3)
+- **`xml_files`**: *(array)* - a list of XML files to be modified. This is useful if you want to automatically change specific elements in XML files corresponding to configuration settings, without manual editing. For example, you can add, change or delete elements, which makes the conversion process flexible and adaptable to the needs of the project. Usage example: [xml_files](pkg/config/default.json#3)
   - **`file_name`**: *(string)* - the name of the XML file to operate on.
     - **Example**: `"file_name": "example.xml"`
   - **`element_operations`**: *(array)* - a list of operations to perform on elements within the XML file.
@@ -56,7 +56,7 @@ There are two configuration files in the project:
 
 ## Automatic detection of platform version
 
-For the conversion type (`conversion_type: "srcConvert"`), an attempt will be made to determine the platform version based on the **upload format version** specified in the `"Configuration.xml"` file. For example, for the download format version `2.16`, the platform version `8.3.23` will be installed. See the conformance file [export_format_versions.json](configs/export_format_versions.json) for details.
+For the conversion type (`conversion_type: "srcConvert"`), an attempt will be made to determine the platform version based on the **upload format version** specified in the `"Configuration.xml"` file. For example, for the download format version `2.16`, the platform version `8.3.23` will be installed. See the conformance file [export_format_versions.json](pkg/export_format/export_format_versions.json) for details.
 
 ## Usage
 
