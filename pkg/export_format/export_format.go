@@ -12,9 +12,8 @@ var exportFormat []byte
 
 type ExportFormatVersions map[string]string
 
-// LoadFormatVersions читает и анализирует файл JSON, содержащий сопоставления версий формата экспорта.
-// Файл JSON должен содержать соответствие версий платформы для версий формата.
-// Возвращает ошибку, если файл не может быть прочитан или содержит недопустимый JSON.
+// LoadFormatVersions возвращает сопоставления версий формата экспорта из встроенных данных.
+// Возвращает ошибку, если встроенные данные содержат недопустимый JSON.
 func LoadFormatVersions(filePath string) (ExportFormatVersions, error) {
 	var versions ExportFormatVersions
 
