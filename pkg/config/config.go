@@ -1,40 +1,44 @@
 package config
 
 import (
+	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/spf13/viper"
+
+	_ "embed"
 )
 
-var info *DumpInfo
+//go:embed default.json
+var defaultConfig []byte
+
+var globalDumpInfo *DumpInfo
 
 func init() {
-	info = New()
+	globalDumpInfo = NewDumpInfo()
 }
 
-func (info *DumpInfo) SetVersion(in string) {
-	if in != "" {
-		info.Version = "V" + in
-	}
-}
-
-func (info *DumpInfo) SetConfigName(in string) {
-	if in != "" {
-		info.ConfigName = in
-	}
-}
-
-func New() *DumpInfo {
-	info := new(DumpInfo)
-	info.ConfigName = "default"
-
-	return info
+func NewDumpInfo() *DumpInfo {
+	return &DumpInfo{ConfigName: "default"}
 }
 
 func GetDumpInfo() *DumpInfo {
-	return info
+	return globalDumpInfo
+}
+
+func (info *DumpInfo) SetVersion(version string) {
+	if version != "" {
+		info.Version = "V" + version
+	}
+}
+
+func (info *DumpInfo) SetConfigName(name string) {
+	if name != "" {
+		info.ConfigName = name
+	}
 }
 
 func LoadConfig() (*Configuration, error) {
@@ -44,19 +48,12 @@ func LoadConfig() (*Configuration, error) {
 
 	var config Configuration
 	if err := viper.Unmarshal(&config); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("не удалось разобрать конфигурацию: %w", err)
 	}
-	path, err := NormalizePath(config.InputPath)
-	if err != nil {
-		return nil, err
-	}
-	config.InputPath = path
 
-	path, err = NormalizePath(config.OutputPath)
-	if err != nil {
+	if err := normalizeConfigPaths(&config); err != nil {
 		return nil, err
 	}
-	config.OutputPath = path
 
 	return &config, nil
 }
@@ -84,4 +81,34 @@ func NewElementOperation(name string, value string, operation OperationType) *El
 		Value:       value,
 		Operation:   operation,
 	}
+}
+
+func GetDefaultConfig() (*Configuration, error) {
+	var config Configuration
+
+	err := json.Unmarshal(defaultConfig, &config)
+	if err != nil {
+		return nil, fmt.Errorf("не удалось разобрать конфигурацию по умолчанию: %w", err)
+	}
+
+	if err := normalizeConfigPaths(&config); err != nil {
+		return nil, err
+	}
+
+	return &config, nil
+}
+
+func normalizeConfigPaths(config *Configuration) error {
+	var err error
+	config.InputPath, err = NormalizePath(config.InputPath)
+	if err != nil {
+		return fmt.Errorf("не удалось нормализовать путь к входному файлу: %w", err)
+	}
+
+	config.OutputPath, err = NormalizePath(config.OutputPath)
+	if err != nil {
+		return fmt.Errorf("не удалось нормализовать путь к выходному файлу: %w", err)
+	}
+
+	return nil
 }
