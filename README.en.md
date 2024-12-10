@@ -13,6 +13,22 @@
 
 ## Configuration file usage
 
+To use your own configuration file, specify the path to the file with the `--config` flag. If the flag is not specified, the application will try to use the path from the **`CONFIG_PATH`** environment variable. If the path is not specified in either the flag or the environment variable, the program will exit with an error.
+
+**Example of usage:**
+
+1. Specify the path with the flag:
+```shell
+files-converter --config="pathToConfig/config.json"
+```
+
+2. If the path is not specified in the flag, set the environment variable:
+```shell
+export CONFIG_PATH="pathToConfig/config.json"
+```
+
+### Configuration file parameters
+
 There are two configuration files in the project:
 - default.json - contains the basic settings for automatic conversion. Usage example: [default.json](pkg/config/default.json)
 - config.json is a custom file in which you can specify parameters such as paths, prefix, configuration name, as well as additional XML files to modify certain elements if you need to configure something further in addition to the standard conversion. Usage example: [SL/cf-converter-config.json](https://github.com/firstBitSportivnaya/PSL/blob/develop/cfe-converter-config.json)

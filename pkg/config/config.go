@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/spf13/viper"
-
 	_ "embed"
+
+	"github.com/ilyakaznacheev/cleanenv"
 )
 
 //go:embed default.json
@@ -41,21 +41,44 @@ func (info *DumpInfo) SetConfigName(name string) {
 	}
 }
 
-func LoadConfig() (*Configuration, error) {
-	if err := viper.ReadInConfig(); err != nil {
-		return nil, err
+func LoadConfig(configPath string) *Configuration {
+	if configPath == "" {
+		configPath = os.Getenv("CONFIG_PATH")
 	}
 
-	var config Configuration
-	if err := viper.Unmarshal(&config); err != nil {
-		return nil, fmt.Errorf("не удалось разобрать конфигурацию: %w", err)
+	if configPath == "" {
+		panic("не указан путь конфигурации")
 	}
 
-	if err := normalizeConfigPaths(&config); err != nil {
-		return nil, err
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		panic("конфигурационный файл не существует: " + err.Error())
 	}
 
-	return &config, nil
+	var cfg Configuration
+
+	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
+		panic("ошибка чтения конфигурационного файла: " + err.Error())
+	}
+
+	if err := normalizeConfigPaths(&cfg); err != nil {
+		panic("ошибка в обработке путей: " + err.Error())
+	}
+
+	return &cfg
+}
+
+func LoadDefaultConfig() *Configuration {
+	var cfg Configuration
+
+	if err := json.Unmarshal(defaultConfig, &cfg); err != nil {
+		panic("не удалось прочитать конфигурацию по умолчанию: " + err.Error())
+	}
+
+	if err := normalizeConfigPaths(&cfg); err != nil {
+		panic("ошибка в обработке путей: " + err.Error())
+	}
+
+	return &cfg
 }
 
 func NormalizePath(input string) (string, error) {
@@ -81,21 +104,6 @@ func NewElementOperation(name string, value string, operation OperationType) *El
 		Value:       value,
 		Operation:   operation,
 	}
-}
-
-func GetDefaultConfig() (*Configuration, error) {
-	var config Configuration
-
-	err := json.Unmarshal(defaultConfig, &config)
-	if err != nil {
-		return nil, fmt.Errorf("не удалось разобрать конфигурацию по умолчанию: %w", err)
-	}
-
-	if err := normalizeConfigPaths(&config); err != nil {
-		return nil, err
-	}
-
-	return &config, nil
 }
 
 func normalizeConfigPaths(config *Configuration) error {
