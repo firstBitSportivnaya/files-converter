@@ -9,7 +9,6 @@ import (
 	"github.com/firstBitSportivnaya/files-converter/pkg/config"
 	"github.com/firstBitSportivnaya/files-converter/pkg/converter"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var (
@@ -37,22 +36,15 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringVar(&configPath, "config", "", "config file (default is $HOME/.files-converter/configs/config.json)")
+	rootCmd.PersistentFlags().StringVar(&configPath, "config", "", "Путь к конфигурационному файлу")
 
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
 }
 
 func runMain(cmd *cobra.Command, args []string) {
-	defaultCfg, err := config.GetDefaultConfig()
-	if err != nil {
-		log.Fatalf("ошибка загрузки конфигурации: %v", err)
-	}
+	defaultCfg := config.LoadDefaultConfig()
 
-	initConfig()
-	cfg, err := config.LoadConfig()
-	if err != nil {
-		log.Fatalf("ошибка загрузки конфигурации: %v", err)
-	}
+	cfg := config.LoadConfig(configPath)
 
 	mergeConfigs(defaultCfg, cfg)
 
@@ -79,19 +71,6 @@ func setNamePrefix(file *config.FileOperation, prefix string) {
 
 	element := config.NewElementOperation(config.NamePrefixElement, prefix, config.Add)
 	file.ElementOperations = append(file.ElementOperations, element)
-}
-
-func initConfig() {
-	if configPath != "" {
-		viper.SetConfigFile(configPath)
-	} else {
-		viper.SetConfigName("config")
-		viper.SetConfigType("json")
-		viper.AddConfigPath("./configs")
-
-		viper.AddConfigPath("$HOME/files-converter/configs")
-		viper.AddConfigPath("/etc/files-converter/configs")
-	}
 }
 
 func mergeConfigs(defaultCfg, cfg *config.Configuration) {

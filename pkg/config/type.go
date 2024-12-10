@@ -18,24 +18,24 @@ const (
 )
 
 type ElementOperation struct {
-	ElementName string        `mapstructure:"element_name"`
-	Value       string        `mapstructure:"value,omitempty"`
-	Operation   OperationType `mapstructure:"operation"`
+	ElementName string        `json:"element_name"`
+	Value       string        `json:"value,omitempty"`
+	Operation   OperationType `json:"operation"`
 }
 
 type FileOperation struct {
-	FileName          string              `mapstructure:"file_name"`
-	ElementOperations []*ElementOperation `mapstructure:"element_operations"`
+	FileName          string              `json:"file_name"`
+	ElementOperations []*ElementOperation `json:"element_operations"`
 }
 
 type Configuration struct {
-	PlatformVersion string           `mapstructure:"platform_version"`
-	Extension       string           `mapstructure:"extension"`
-	Prefix          string           `mapstructure:"prefix"`
-	InputPath       string           `mapstructure:"input_path"`
-	OutputPath      string           `mapstructure:"output_path"`
-	ConversionType  ConvertType      `mapstructure:"conversion_type"`
-	XMLFiles        []*FileOperation `mapstructure:"xml_file_changes"`
+	PlatformVersion string           `json:"platform_version"`
+	Extension       string           `json:"extension"`
+	Prefix          string           `json:"prefix"`
+	InputPath       string           `json:"input_path" env-required:"true"`
+	OutputPath      string           `json:"output_path" env-required:"true"`
+	ConversionType  ConvertType      `json:"conversion_type" env-required:"true"`
+	XMLFiles        []*FileOperation `json:"xml_file_changes"`
 }
 
 type DumpInfo struct {
