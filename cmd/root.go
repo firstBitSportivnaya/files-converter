@@ -6,8 +6,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/firstBitSportivnaya/files-converter/pkg/config"
-	"github.com/firstBitSportivnaya/files-converter/pkg/converter"
+	"github.com/firstBitSportivnaya/files-converter/internal/config"
+	"github.com/firstBitSportivnaya/files-converter/internal/converter"
 	"github.com/spf13/cobra"
 )
 

@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/beevik/etree"
-	"github.com/firstBitSportivnaya/files-converter/pkg/config"
+	"github.com/firstBitSportivnaya/files-converter/internal/config"
 )
 
 const (
