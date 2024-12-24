@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/firstBitSportivnaya/files-converter/pkg/config"
-	"github.com/firstBitSportivnaya/files-converter/pkg/export_format"
-	"github.com/firstBitSportivnaya/files-converter/pkg/utils/fileutil"
-	xmlutil "github.com/firstBitSportivnaya/files-converter/pkg/utils/xmlutil"
+	"github.com/firstBitSportivnaya/files-converter/internal/config"
+	"github.com/firstBitSportivnaya/files-converter/internal/export_format"
+	"github.com/firstBitSportivnaya/files-converter/internal/utils/fileutil"
+	xmlutil "github.com/firstBitSportivnaya/files-converter/internal/utils/xmlutil"
 
 	v8 "github.com/v8platform/api"
 	"github.com/v8platform/runner"

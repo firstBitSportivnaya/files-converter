@@ -3,7 +3,7 @@ package converter
 import (
 	"fmt"
 
-	"github.com/firstBitSportivnaya/files-converter/pkg/config"
+	"github.com/firstBitSportivnaya/files-converter/internal/config"
 )
 
 func RunConversion(cfg *config.Configuration) error {
