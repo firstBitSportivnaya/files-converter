@@ -27,7 +27,7 @@ require (
 	github.com/v8platform/errors v0.1.0 // indirect
 	github.com/v8platform/find v0.0.0-20200629131701-72a40bdf1034 // indirect
 	github.com/v8platform/marshaler v0.1.1 // indirect
-	golang.org/x/crypto v0.31.0 // indirect
+	golang.org/x/crypto v0.35.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	olympos.io/encoding/edn v0.0.0-20201019073823-d3554ca0b0a3 // indirect
